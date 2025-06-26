@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 import { useAuthenticator } from '@aws-amplify/ui-react'; // 假设已安装
 
 import styles from './Header.module.scss'; // 导入模块化样式
-import eMenuLogo from '../../assets/eMenu-logo-trans.png'
+import eMenuIcon from '../../assets/eMenu-icon.svg'
 
 const Header = () => {
   const { signOut, authStatus } = useAuthenticator(context => [context.authStatus]);
@@ -12,7 +12,7 @@ const Header = () => {
 
   return (
     <header className={styles.headerBar}>
-      <img src={eMenuLogo} alt="eMenu Logo" height="40" />
+      <img src={ eMenuIcon } alt="eMenu Logo" height="40" />
       <h1 className={styles.logoText}>eMenu Admin</h1>
       <div className={styles.userState}>
         {isLoggedIn ? (

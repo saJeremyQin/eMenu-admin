@@ -18,8 +18,10 @@ body {
   font-family: 'Inter', sans-serif; // Ensure Inter font is imported
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background-color: var.$background-color-dark;
+  background-color: var.$background-color-login-page;   //default background colour, can be used to login page
   min-height: 100vh;                // Ensure body occupies 100% viewport height
+  transition: background-color 0.3s ease, color 0.3s ease;
+
 }
 
 #root {

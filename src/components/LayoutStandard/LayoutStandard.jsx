@@ -3,9 +3,9 @@
 import React from 'react';
 import Header from '../Header/Header';       
 import Navigation from '../Navigation/Navigation'; 
-import styles from './Layout.module.scss';      
+import styles from './LayoutStandard.module.scss';      
 
-const Layout = ({ children }) => {
+const LayoutStandard = ({ children }) => {
   return (
     <React.Fragment>
       <Header />
@@ -19,4 +19,4 @@ const Layout = ({ children }) => {
   );
 };
 
-export default Layout;
+export default LayoutStandard;

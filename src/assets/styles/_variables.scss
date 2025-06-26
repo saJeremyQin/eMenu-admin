@@ -6,8 +6,12 @@ $primary-color: #007bff; // Blue
 $accent-color: #0056b3;  // Dark blue
 $text-color: #333;
 $light-text-color: #666;
+
 $background-color-light: #f9f9f9;
 $background-color-dark: #f0f2f5;
+$background-color-login-page: #f0f2f5; // 登录页面背景色，与 body 默认色相似
+
+
 $shadow-color: rgba(0, 0, 0, 0.1);
 $border-color: #ddd;
 
@@ -17,3 +21,4 @@ $font-large: 1.2em;
 $spacing-sm: 0.5em;
 $spacing-md: 1em;
 $spacing-lg: 1.5em;
+$spacing-xl: 2em;

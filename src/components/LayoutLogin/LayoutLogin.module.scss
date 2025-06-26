@@ -1,0 +1,98 @@
+@use '../../assets/styles/variables' as var;
+@use '../../assets/styles/mixins' as mix;
+
+.loginContainer {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column; // 垂直排列 Logo 和表单
+  justify-content: flex-start; // 内容从顶部开始对齐
+  align-items: center;   // 水平居中
+  background-color: var.$background-color-login-page; // 使用变量
+  padding-top: var.$spacing-lg; // 在顶部添加内边距以控制留白
+  padding-bottom: var.$spacing-lg; // 保持底部也有一些内边距
+  padding-left: var.$spacing-md; // 保持左右内边距
+  padding-right: var.$spacing-md; // 保持左右内边距
+  box-sizing: border-box;
+  overflow-y: auto; // Add if content might overflow on smaller screens
+
+  .logo {
+    max-width: 191px; // 缩小 logo 宽度
+    height: 145px;   // 缩小 logo 高度
+    margin-bottom: var.$spacing-sm; // 缩小 logo 和表单之间的距离
+  }
+
+  .authFormWrapper {
+    max-width: 540px; // 限制表单最大宽度
+    width: 100%;
+    padding: var.$spacing-xl;
+    background-color: white;
+    border-radius: 8px;
+    @include mix.box-shadow;
+
+    // 针对 Amplify UI Authenticator 内部样式的调整
+    :global(.amplify-tabs) {
+      margin-bottom: var.$spacing-md;
+    }
+
+    :global(.amplify-field) {
+      margin-bottom: var.$spacing-md;
+    }
+
+    :global(.amplify-button) {
+      width: 100%;
+      margin-top: var.$spacing-md;
+    }
+
+    // --- 简化后的对齐规则 ---
+
+    // 关键：密码输入框和眼睛图标的共同父容器
+    :global(.amplify-field-group--horizontal) {
+      display: flex;
+      align-items: center; /* 垂直居中对齐所有直接子元素 */
+      gap: 5px; /* 输入框和按钮之间的间距 */
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    // 输入框的外层 wrapper，使其占据剩余空间
+    :global(.amplify-field-group__field-wrapper--horizontal) {
+      flex-grow: 1; /* 让输入框的 wrapper 占据所有可用空间 */
+      // 移除多余的 display/align-items，让 input 自己控制
+    }
+
+    // 实际的输入框元素
+    :global(.amplify-input) {
+      width: 100%; /* 确保输入框填充其父级 wrapper */
+      height: 40px; /* 明确设置高度，保持一致 */
+      box-sizing: border-box; /* 确保 padding 不增加总高度 */
+      line-height: normal; /* 确保文本垂直居中 */
+    }
+
+    // 关键：眼睛图标按钮的外层容器
+    :global(.amplify-field-group__outer-end) {
+      flex-shrink: 0; /* 防止收缩 */
+      display: flex;
+      align-items: center; /* 垂直居中对齐其内部的按钮 */
+      justify-content: center;
+      height: 40px; /* 强制高度与输入框一致 */
+      width: 40px; /* 强制宽度，使其为正方形 */
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    // 实际的眼睛按钮
+    :global(.amplify-field__show-password) {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100%; /* 填满父容器的高度 */
+      width: 100%; /* 填满父容器的宽度 */
+      border: none;
+      background-color: transparent;
+      cursor: pointer;
+      margin: 0;
+      padding: 0;
+    }
+  }
+}
