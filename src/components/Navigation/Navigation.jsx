@@ -8,7 +8,7 @@ const Navigation = () => {
     <nav className={styles.nav}>
       <ul className={styles.navList}>
         <li><Link to="/"><span aria-hidden="true" role="img">🏠</span>Home</Link></li>
-        <li><Link to="/dish-types"><span aria-hidden="true" role="img">🍲</span>Dishes</Link></li>
+        <li><Link to="/dishes"><span aria-hidden="true" role="img">🍲</span>Dishes</Link></li>
         <li><Link to="/dish-types"><span aria-hidden="true" role="img">🤵‍♀️</span>Waiters</Link></li>
         <li><Link to="/menu-items"><span aria-hidden="true" role="img">🍽️</span>Orders</Link></li>
         <li><Link to="/restaurants"><span aria-hidden="true" role="img">🏢</span>Restaurant</Link></li>

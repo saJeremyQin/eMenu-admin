@@ -9,14 +9,13 @@
           region: 'ap-southeast-2',
         },
       },
-      // 如果你后续要集成 AppSync，可以在这里添加 API 配置
-      // API: {
-      //   GraphQL: {
-      //     endpoint: 'YOUR_APPSYNC_GRAPHQL_ENDPOINT',
-      //     region: 'ap-southeast-2',
-      //     defaultAuthMode: 'userPool', // 或 'apiKey' 等
-      //   },
-      // },
+      API: {
+        GraphQL: {
+          endpoint: 'https://bg3tjhivtnajvanipkiujecj6q.appsync-api.ap-southeast-2.amazonaws.com/graphql',
+          region: 'ap-southeast-2',
+          defaultAuthMode: 'userPool', // 或 'apiKey' 等
+        },
+      },
     };
 
     export default awsOutputs;

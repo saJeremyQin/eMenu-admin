@@ -8,7 +8,7 @@ import LayoutLogin from './components/LayoutLogin/LayoutLogin';
 import LayoutStandard from './components/LayoutStandard/LayoutStandard'; // 原 Layout 重命名
 
 import HomePage from './pages/HomePage/HomePage';
-// import RestaurantsPage from './pages/RestaurantsPage/RestaurantsPage'; // 示例，请创建
+import DishManagerPage from './pages/DishManagerPage/DishManagerPage';
 
 const AuthLayoutManager = () => {
   const { authStatus } = useAuthenticator(context => [context.authStatus]);
@@ -23,8 +23,7 @@ const AuthLayoutManager = () => {
         <LayoutStandard>
           <Routes>
             <Route path="/" element={<HomePage />} />
-            {/* 这里添加所有登录后才能访问的路由 */}
-            {/* <Route path="/menu-items" element={<MenuItemManager />} /> */}
+            <Route path="/dishes" element={<DishManagerPage />} />
             {/* <Route path="/dish-types" element={<DishTypesPage />} /> */}
             {/* <Route path="/restaurants" element={<RestaurantsPage />} /> */}
             {/* <Route path="/settings" element={<SettingsPage />} /> */}
