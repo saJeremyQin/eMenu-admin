@@ -1,0 +1,66 @@
+@use '../../assets/styles/variables' as var; 
+@use '../../assets/styles/mixins' as mix;   
+@use 'sass:color';
+
+.nav {
+  padding: var.$spacing-md; // 使用变量进行内边距设置
+  background: var.$background-color-dark;
+  box-sizing: border-box; // 确保 padding 不会影响宽度计算
+
+  // 移动端样式：当屏幕宽度小于 700px 时
+  @media (max-width: 699px) {
+    // 确保内容不被头部遮挡，并在头部下方留出空间
+    padding-top: calc(var.$header-height + var.$spacing-md);
+    position: relative; // 移动端可以相对定位，或者不设置 position 让它自然流淌
+    width: 100%; // 移动端占据全宽
+  }
+
+  // 桌面端样式：当屏幕宽度大于等于 700px 时
+  @media (min-width: 700px) {
+    position: fixed; // 固定定位
+    width: var.$nav-width; // 使用变量设置导航栏宽度
+    height: calc(100vh - var.$header-height); // 占据视口剩余高度
+    overflow-y: auto; // 如果内容超出，允许垂直滚动
+    top: var.$header-height; // 从头部下方开始
+    left: 0; // 固定在左侧
+    padding-top: var.$spacing-md; // 桌面端，从顶部开始的内边距
+  }
+}
+
+.navList {
+  margin: 0;
+  padding: 0;
+  list-style: none; // 移除列表默认的圆点或数字
+  line-height: 2; // 行高，增加可读性
+
+  li {
+    margin-bottom: var.$spacing-sm; // 列表项之间的底部外边距
+  }
+
+  a {
+    display: flex; // 使用 Flexbox 布局
+    align-items: center; // 垂直居中对齐图标和文本
+    gap: var.$spacing-sm; // 图标和文本之间的间距
+    white-space: nowrap; // **关键：防止文本换行**
+    text-decoration: none; // 移除下划线
+    font-weight: bold;
+    font-size: 1.1em;
+    color: var.$text-color;
+    padding: var.$spacing-sm var.$spacing-md; // 增加链接的内边距，使其更容易点击
+
+    &:visited {
+      color: var.$text-color;
+    }
+
+    &:hover,
+    &:focus {
+      color: var.$primary-color;
+      background-color: color.adjust(var.$background-color-dark, $lightness: 3%); // 鼠标悬停时背景色变浅
+      border-radius: 5px; // 轻微圆角
+    }
+
+    span[role="img"] { // 针对 emoji 图标的样式
+      font-size: 1.2em;
+    }
+  }
+}

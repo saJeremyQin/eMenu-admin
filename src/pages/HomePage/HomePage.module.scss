@@ -1,0 +1,51 @@
+.homeContainer {
+  font-family: 'Inter', Arial, sans-serif;
+  text-align: center;
+  color: #2c3e50;
+  min-height: calc(100vh - var(--header-height, 64px)); // 减去头部高度
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background-color: #f0f2f5;
+  padding: 20px;
+  box-sizing: border-box; // 确保 padding 不会超出
+}
+
+.authenticatorWrapper {
+  max-width: 500px;
+  padding: 20px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
+  border-radius: 12px;
+  background-color: white;
+  width: 100%; // 确保在 max-width 范围内自适应
+}
+
+.heading {
+  font-size: 2em;
+  margin-bottom: 0.5em;
+}
+
+.subText {
+  font-size: 1.1em;
+  color: #4b5563;
+  margin-bottom: 1.5em;
+}
+
+// 假设 Authenticator 内部按钮样式需要修改，可以像这样
+// :global(.amplify-button[data-amplify-button="primary"]) {
+//   background-color: #ef4444; // Tailwind red-500
+//   color: white;
+//   font-weight: bold;
+//   padding: 8px 16px;
+//   border-radius: 6px; // Tailwind rounded-md
+//   box-shadow: 0 1px 3px rgba(0,0,0,0.1), 0 1px 2px rgba(0,0,0,0.06);
+//   transition: background-color 0.3s ease-in-out;
+//   border: none;
+//   cursor: pointer;
+//   margin-top: 20px;
+
+//   &:hover {
+//     background-color: #dc2626; // Tailwind red-700
+//   }
+// }

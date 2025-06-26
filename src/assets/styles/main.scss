@@ -1,0 +1,4 @@
+// The entry file
+@use 'variables' as var; // <-- 关键修正：使用 @use 并定义命名空间 'var'
+@use 'mixins' as mix;   // <-- 关键修正：使用 @use 并定义命名空间 'mix'
+@use 'base' as base;

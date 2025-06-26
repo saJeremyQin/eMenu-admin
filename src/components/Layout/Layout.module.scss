@@ -1,0 +1,33 @@
+@use '../../assets/styles/variables' as var; // <-- 关键修正：使用 @use 并定义命名空间 'var'
+@use '../../assets/styles/mixins' as mix;   // <-- 关键修正：使用 @use 并定义命名空间 'mix'
+
+.wrapper {
+  // Default style for mobile 
+  // @media (max-width: 699px) { /* mobile style */ }
+
+  @media (min-width: 700px) {
+    display: flex;
+    position: relative;                   // 修正：Header 是 fixed，wrapper 应该在 Header 之下
+    top: var(--header-height, 64px);      // 使用 CSS 变量或直接 $header-height
+    height: calc(100vh - var.$header-height); // 减去头部高度
+    width: 100%;
+    // flex-direction: row;               // 默认就是 row，显式写明更清晰
+  }
+}
+
+.main {
+  // 之前 App.jsx 中的内联样式可以迁移到这里
+  flex-grow: 1; // 占据剩余空间
+  width: 100%;
+  padding: var.$spacing-md; // 使用 SCSS 变量
+  overflow-y: auto; // 确保内容可滚动
+  background-color: var.$background-color-light;
+  box-sizing: border-box; // 确保 padding 不会影响宽度计算
+
+  @media (min-width: 700px) {
+    margin-left: var.$nav-width; // 导航栏宽度
+    width: calc(100% - var.$nav-width);
+    height: calc(100vh - var.$header-height); // 保持与 wrapper 同高
+    position: relative; // 移除 fixed，main 应在 normal flow 中
+  }
+}

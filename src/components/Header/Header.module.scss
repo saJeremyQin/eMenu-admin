@@ -1,0 +1,57 @@
+@use '../../assets/styles/variables' as var; 
+@use '../../assets/styles/mixins' as mix;
+
+
+.headerBar {
+  width: 100%;
+  padding: 0.5em 1em;
+  display: flex;
+  height: var.$header-height; // 使用 SCSS 变量
+  position: fixed;
+  top: 0; // 确保头部在页面顶部
+  left: 0; // 确保头部从左侧开始
+  align-items: center;
+  background-color: #fff;
+  box-shadow: 0 0 5px 0 var.$shadow-color; // 使用 SCSS 变量
+  z-index: 10; // 确保在其他内容之上
+  box-sizing: border-box; // 确保 padding 不会超出宽度
+}
+
+.logoText {
+  margin: 0;
+  padding: 0;
+  display: inline;
+  font-size: 1.8em;
+  color: var.$text-color; // 使用 SCSS 变量
+  margin-left: 0.5em; // logo 和文字间距
+}
+
+.userState {
+  margin-left: auto; // 将此部分推到右侧
+  display: flex;
+  align-items: center;
+
+  p {
+    margin: 0; // 移除段落的默认外边距
+    a {
+      // 继承自 main.scss 的链接样式
+      padding: 0 0.5em;
+    }
+  }
+}
+
+.buttonAsLink {
+  background: none;
+  color: var.$primary-color; // 使用 SCSS 变量
+  border: none;
+  padding: 0;
+  font: inherit; // 继承父元素的字体设置
+  cursor: pointer;
+  text-decoration: none;
+  font-weight: bold;
+  font-size: 1em;
+  
+  &:hover {
+    text-decoration: underline;
+  }
+}
