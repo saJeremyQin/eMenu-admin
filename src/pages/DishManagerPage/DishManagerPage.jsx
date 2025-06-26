@@ -1,4 +1,3 @@
-// src/pages/DishManagerPage/DishManagerPage.jsx
 import React, { useState, useEffect } from 'react';
 import { generateClient } from 'aws-amplify/api';
 import { useAuthenticator } from '@aws-amplify/ui-react';
@@ -61,8 +60,8 @@ function DishManagerPage() {
   // Initial data fetch: Get user's restaurant ID, then fetch dishes and dish types
   useEffect(() => {
     async function initPage() {
-      if (!user || !user.username) {
-        setError('User not logged in or user data incomplete.');
+      if (!user || !user.attributes || !user.attributes.sub) { // <-- Improved check for user.attributes.sub
+        setError('User not logged in or user SUB ID is missing.');
         return;
       }
 
@@ -71,10 +70,10 @@ function DishManagerPage() {
       setMessage('');
 
       try {
-        // 1. Fetch user's restaurant ID using user.username (Cognito sub)
+        // 1. Fetch user's restaurant ID using user.attributes.sub (Cognito SUB ID)
         const userResult = await client.graphql({
           query: getUserQuery,
-          variables: { id: user.username }
+          variables: { id: user.attributes.sub } // <-- Key correction: Use user.attributes.sub
         });
         const fetchedUser = userResult.data.getUser;
 
