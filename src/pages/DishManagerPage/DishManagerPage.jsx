@@ -1,3 +1,4 @@
+// src/pages/DishManagerPage/DishManagerPage.jsx
 import React, { useState, useEffect } from 'react';
 import { generateClient } from 'aws-amplify/api';
 import { useAuthenticator } from '@aws-amplify/ui-react';
@@ -6,20 +7,18 @@ import styles from './DishManagerPage.module.scss';
 
 const client = generateClient();
 
-// GraphQL Queries (based on the required comprehensive schema that supports User, Dishes, and DishTypes)
-// Query to get the current user's restaurant ID (User model has restaurantId)
+// GraphQL Queries
 const getUserQuery = `
   query GetUser($id: ID!) {
     getUser(id: $id) {
       id
-      sub
       restaurantId
       email
     }
   }
 `;
 
-// Query to list dishes (Lambda will retrieve restaurantId based on identity)
+// Key change: listDishesQuery now requests nested dishType fields
 const listDishesQuery = `
   query ListDishes {
     listDishes {
@@ -28,40 +27,48 @@ const listDishesQuery = `
       description
       price
       image
-      dishTypeId
       restaurantId
+      dishType { # <-- Request the nested DishType object
+        id
+        title
+        alias
+        # restaurantId # Optional: Can include if needed for debugging or display
+      }
     }
   }
 `;
-
-// Query to list dish types (Lambda will retrieve restaurantId based on identity)
-const listDishTypesQuery = `
-  query ListDishTypes { # No restaurantId argument, Lambda derives it
-    listDishTypes {
-      id
-      name # Correct field name from schema
-      restaurantId
-    }
-  }
-`;
-
-// Note: createDish, updateDish, deleteDish, and their related UI are NOT included for now
-// as per user's current scope and provided schema.
 
 function DishManagerPage() {
-  const { user } = useAuthenticator((context) => [context.user]);
+  // Extract user and authStatus from useAuthenticator
+  const { user, authStatus } = useAuthenticator((context) => [context.user, context.authStatus]);
+
   const [dishes, setDishes] = useState([]);
-  const [dishTypes, setDishTypes] = useState([]); // State to store dish types
-  const [currentRestaurantId, setCurrentRestaurantId] = useState(null); // User's restaurant ID
+  const [currentRestaurantId, setCurrentRestaurantId] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [message, setMessage] = useState('');
 
-  // Initial data fetch: Get user's restaurant ID, then fetch dishes and dish types
+  // Initial data fetch: Get user's restaurant ID, then fetch dishes (with nested dishType)
   useEffect(() => {
     async function initPage() {
-      if (!user || !user.attributes || !user.attributes.sub) { // <-- Improved check for user.attributes.sub
-        setError('User not logged in or user SUB ID is missing.');
+      console.log("useEffect triggered. Current authStatus:", authStatus);
+      console.log("Current user object:", JSON.stringify(user, null, 2));
+
+      // Condition to proceed with data fetching:
+      // 1. User must be authenticated
+      // 2. User object and its userId (which contains the SUB ID) must be present
+      if (authStatus !== 'authenticated' || !user || !user.userId) { // <-- Key change: checking user.userId instead of user.attributes.sub
+        console.log("Skipping initPage: Auth status not authenticated or user SUB ID missing from user.userId.");
+        setLoading(false); // Ensure loading is off if we don't proceed
+        // Set a more specific error based on authStatus
+        if (authStatus === 'unauthenticated') {
+            setError('You are not logged in. Please log in first.');
+        } else if (authStatus === 'configuring') {
+            setError('Configuring authentication information, please wait...');
+        } else {
+            setError('Incomplete user identity information. Could not retrieve SUB ID. Please try refreshing the page or logging in again.');
+            console.error("Incomplete user object:", user);
+        }
         return;
       }
 
@@ -70,19 +77,21 @@ function DishManagerPage() {
       setMessage('');
 
       try {
-        // 1. Fetch user's restaurant ID using user.attributes.sub (Cognito SUB ID)
+        const userSubToQuery = user.userId; // <-- Key change: using user.userId
+        console.log("Attempting to fetch user data from backend for SUB:", userSubToQuery);
+
         const userResult = await client.graphql({
           query: getUserQuery,
-          variables: { id: user.attributes.sub } // <-- Key correction: Use user.attributes.sub
+          variables: { id: userSubToQuery }
         });
         const fetchedUser = userResult.data.getUser;
 
         if (fetchedUser && fetchedUser.restaurantId) {
           setCurrentRestaurantId(fetchedUser.restaurantId);
-          await fetchDishes(); // Fetch dishes only after restaurantId is known
-          await fetchDishTypes(); // Fetch dish types
+          await fetchDishes(); // Fetch dishes, which now includes dishType info
         } else {
-          setError('Current user is not associated with a restaurant. Please ensure restaurant information is created.');
+          setError('The current user is not associated with any restaurant. Please ensure restaurant information is created.');
+          console.log("Fetched user:", fetchedUser, "has no restaurantId.");
         }
       } catch (err) {
         console.error('Failed to initialize dish management page:', err);
@@ -93,7 +102,7 @@ function DishManagerPage() {
     }
 
     initPage();
-  }, [user]); // Re-initialize when user object changes
+  }, [user, authStatus]); // Dependency array: Re-run when user object or authStatus changes.
 
   // Data Fetching Function for Dishes
   async function fetchDishes() {
@@ -111,21 +120,10 @@ function DishManagerPage() {
     }
   }
 
-  // Data Fetching Function for Dish Types
-  async function fetchDishTypes() {
-    try {
-      const result = await client.graphql({ query: listDishTypesQuery }); // No variables needed
-      setDishTypes(result.data.listDishTypes || []);
-    } catch (err) {
-      console.error('Failed to fetch dish types:', err);
-      // Do not set global error for dish types, as dishes might still load
-    }
-  }
-
-  // Helper to get Dish Type Name from ID
-  const getDishTypeName = (dishTypeId) => {
-    const type = dishTypes.find(dt => dt.id === dishTypeId);
-    return type ? type.name : 'Unknown Type';
+  // Helper to get Dish Type Name from the nested object
+  const getDishTypeName = (dish) => {
+    // Check if dish.dishType exists and has a title
+    return dish.dishType ? dish.dishType.title : 'Unknown Type (Error)';
   };
 
   return (
@@ -136,13 +134,13 @@ function DishManagerPage() {
       {error && <p className={styles.error}>{error}</p>}
       {message && <p className={styles.message}>{message}</p>}
 
-      {!currentRestaurantId && !loading && !error && (
+      {/* Conditionally render based on currentRestaurantId after loading */}
+      {!loading && !currentRestaurantId && !error && (
         <p className={styles.infoText}>User is not associated with a restaurant. Please ensure restaurant information is created.</p>
       )}
 
       {currentRestaurantId && (
         <div className={styles.tableSection}>
-          <h3 className={styles.subHeading}>All Dishes</h3>
           <button onClick={fetchDishes} className={styles.refreshButton}>
             Refresh List
           </button>
@@ -162,7 +160,7 @@ function DishManagerPage() {
                 <tbody>
                   {dishes.map(dish => (
                     <tr key={dish.id}>
-                      <td>{getDishTypeName(dish.dishTypeId)}</td>
+                      <td>{getDishTypeName(dish)}</td>
                       <td>{dish.name}</td>
                       <td>${dish.price}</td>
                       <td>{dish.description || 'N/A'}</td>
