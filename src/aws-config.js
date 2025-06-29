@@ -1,12 +1,15 @@
-    // src/aws-config.js
+
+import { signUp } from "aws-amplify/auth";
 
     // 您的 AWS Cognito 配置 (适用于 Amplify v6+)
     const awsOutputs = {
       Auth: {
         Cognito: {
-          userPoolId: 'ap-southeast-2_0a2hzDvRi',
-          userPoolClientId: '232fs0ql6m9mjlr79aariv29c3',
+          userPoolId: 'ap-southeast-2_2WdKaZBr3',
+          userPoolClientId: '40nv3qru4flrlbcjftgq7qd7q0',
           region: 'ap-southeast-2',
+          signUpAttributes: ['EMAIL'],
+          verificationMechanisms: ['EMAIL'],
         },
       },
       API: {
