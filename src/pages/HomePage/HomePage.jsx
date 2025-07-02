@@ -1,6 +1,6 @@
 // src/pages/HomePage/HomePage.jsx
 import React from 'react';
-import styles from './HomePage.module.scss'; // 导入模块化样式
+import styles from './HomePage.module.scss'; 
 
 function HomePage() {
   return (
