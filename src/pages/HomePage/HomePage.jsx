@@ -7,7 +7,7 @@ function HomePage() {
     <div className={styles.homeContainer}> {/* 使用模块化类名 */}
       <h2 className={styles.heading}>Welcome to eMenu Admin!</h2>
       <p className={styles.subText}>This is the Homepage content。</p>
-      <hr className={styles.separator} /> {/* 分隔线 */}
+      <hr className={styles.separator} /> {/* divide line */}
       <p className={styles.infoText}>
         Congratulations! You have login successfully!
         This is where you put components, to interact with the AppSync.
