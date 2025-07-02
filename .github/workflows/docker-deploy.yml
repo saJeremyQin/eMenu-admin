@@ -1,0 +1,54 @@
+name: Build and Push Docker Image
+
+on:
+    push:
+        branches:
+            - dev
+
+jobs: 
+    build-and-push:
+        runs-on: ubuntu-latest
+
+        permissions:
+          contents: read
+          id-token: write              #neccessary for OIDC assume role
+        
+        env:
+          ECR_REPOSITORY: emenu/emenu-admin
+          ECR_REGISTRY: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.ap-southeast-2.amazonaws.com
+          AWS_REGION: ap-southeast-2
+        
+        steps:
+            - name: Checkout Code
+              uses: actions/checkout@v3
+
+            - name: Configure AWS condentials
+              uses: aws-actions/configure-aws-credentials@v2
+              with:
+                # use IAM role ARN, this role needs rights to push ECR(ecr:BatchCheckLayerAvailability, ecr:CompleteLayerUpload, ecr:GetDownloadUrlForLayer, ecr:InitiateLayerUpload, ecr:PutImage)
+                # this role also needs trust policy, to permit OIDC provider of GitHub Actions to assume it.
+                role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+                aws-region: ${{ env.AWS_REGION }}
+
+            - name: Login to ECR
+              id: login-ecr
+              uses: aws-actions/amazon-ecr-login@v1
+
+            - name: Build and tag docker image
+              run: |
+                # Get the SHA value of git commit as tag of image, to ensure unique
+                IMAGE_TAG="${{ github.sha }}"
+
+                # Build docker image, -t is used to specify name and tag
+                # Complete format of image name is: <ECR_REGISTRY>/<ECR_REPOSITORY>:<TAG>
+
+                docker build -t "$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"  .
+                # Tag it with'latest', conveniently for reference latest
+                docker tag "$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" "$ECR_REGISTRY/$ECR_REPOSITORY:latest"
+
+                echo "IMAGE_TAG=$IMAGE_TAG" >> GITHUB_OUTPUT
+
+            - name: Push image to ECR
+              run: |
+                docker push "$ECR_REGISTRY/$ECR_REPOSITORY:$${{ github.sha }} "
+                docker push "$ECR_REGISTRY/${ECR_REPOSITORY:latest"
