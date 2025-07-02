@@ -37,7 +37,7 @@ jobs:
             - name: Build and tag docker image
               run: |
                 # Get the SHA value of git commit as tag of image, to ensure unique
-                IMAGE_TAG="${{ github.sha }}"
+                IMAGE_TAG="${GITHUB_SHA}"
 
                 # Build docker image, -t is used to specify name and tag
                 # Complete format of image name is: <ECR_REGISTRY>/<ECR_REPOSITORY>:<TAG>
@@ -46,9 +46,9 @@ jobs:
                 # Tag it with'latest', conveniently for reference latest
                 docker tag "$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" "$ECR_REGISTRY/$ECR_REPOSITORY:latest"
 
-                echo "IMAGE_TAG=$IMAGE_TAG" >> GITHUB_OUTPUT
+                echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_ENV
 
             - name: Push image to ECR
               run: |
-                docker push "$ECR_REGISTRY/$ECR_REPOSITORY:$${{ github.sha }} "
-                docker push "$ECR_REGISTRY/${ECR_REPOSITORY:latest"
+                docker push "$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
+                docker push "$ECR_REGISTRY/$ECR_REPOSITORY:latest"
