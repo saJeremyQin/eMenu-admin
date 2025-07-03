@@ -1,5 +1,5 @@
 # Step 1: Use node to build Vite application
-FROM node:18-alpine AS build
+FROM node:20-alpine AS build
 
 # Set Work directory
 WORKDIR /app
@@ -8,7 +8,7 @@ WORKDIR /app
 COPY package*.json ./
 
 # Install dependencies
-RUN npm install
+RUN npm install --omit=dev
 
 # Copy source code
 COPY . .
