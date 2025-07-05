@@ -1,8 +1,21 @@
 
+// Define ECS cluster resource
 resource "aws_ecs_cluster" "main_cluster" {
-    name = 1
+  name = "emenu-admin-cluster"
+
+  tags = {
+    Name = "emenu-admin-cluster"
+    Project = "emenu-admin"
+    Service = "emenu-admin-service"
+  }
 }
 
 output "ecs_cluster_name" {
-  value = 1
+  description = "the name of the ECS cluster"
+  value = aws_ecs_cluster.main_cluster.name
+}
+
+output "ecs_cluster_arn" {
+  description = "the ARN of the ECS cluster"
+  value = aws_ecs_cluster.main_cluster.arn
 }
