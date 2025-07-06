@@ -1,1 +1,30 @@
 # Define ALB, Target Group and listener
+resource "aws_alb" "this" {
+    name               = "emenu-admin-alb"
+    internal           = false
+    load_balancer_type = "application"
+    security_groups    = [ var.alb_sg_id ]
+    subnets = [ 
+        var.subnet_public_a_id,
+        var.subnet_public_b_id
+    ]
+}
+
+resource "aws_alb_target_group" "this" {
+    name        = "emenu-admin-tg"
+    port        = 80
+    protocol    = "HTTP"
+    vpc_id      = var.vpc_id
+    target_type = "ip"
+}
+
+resource "aws_alb_listener" "this" {
+    load_balancer_arn = aws_alb.this.arn
+    port              = 80
+    protocol          = "HTTP"
+
+    default_action {
+      type             = "forward"
+      target_group_arn = aws_alb_target_group.this.arn
+    }
+}

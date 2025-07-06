@@ -61,8 +61,3 @@ resource "aws_route_table_association" "public_a" {
   subnet_id = aws_subnet.public_a.id                  //only after association, the subnet can access to Internet
   route_table_id = aws_route_table.public.id
 }
-
-# output for use by other modules
-output "vpc_id" {
-  value = aws_vpc.this.id
-}
