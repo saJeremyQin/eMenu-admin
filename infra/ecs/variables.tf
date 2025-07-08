@@ -18,3 +18,15 @@ variable "subnet_public_b_id" {
 variable "vpc_id" {
   description = "VPC ID for the ECS service"
 }
+
+variable "service_name" {
+  
+}
+
+variable "container_image" {
+  
+}
+
+variable "container_port" {
+  
+}

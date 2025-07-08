@@ -1,4 +1,6 @@
 
+//      image     = "205930647566.dkr.ecr.ap-southeast-2.amazonaws.com/emenu/emenu-admin:latest"
+
 # define aws provider
 provider "aws" {
     region = "ap-southeast-2"
@@ -8,8 +10,16 @@ module "networking" {
   source = "./networking"
 }
 
+module "ecr" {
+  source = "./ecr"
+  name = "emenu"
+}
+
 module "ecs" {
-    source = "./ecs"
+    source          = "./ecs"
+    service_name    = "emenu-admin"
+    container_image = "${module.ecr.repository_url}:latest"
+    container_port  = 80
 
     vpc_id = module.networking.vpc_id
     alb_sg_id = module.networking.alb_sg_id

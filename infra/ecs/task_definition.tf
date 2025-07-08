@@ -1,6 +1,6 @@
 # define ECS task definition, including container image, port mappling, CPU/Memory
-resource "aws_ecs_task_definition" "emenu" {
-  family                   = "emenu-admin"
+resource "aws_ecs_task_definition" "this" {
+  family                   = var.service_name
   requires_compatibilities = [ "FARGATE" ]
   network_mode             = "awsvpc"
   cpu                      = "256"
@@ -10,12 +10,11 @@ resource "aws_ecs_task_definition" "emenu" {
 
   container_definitions = jsonencode([
     {
-      name      = "emenu-admin"
-      image     = "205930647566.dkr.ecr.ap-southeast-2.amazonaws.com/emenu/emenu-admin:latest"
-     
+      name  = var.service_name
+      image = var.container_image   
       portMappings = [
         {
-          containerPort = 80
+          containerPort = var.container_port
         }
       ]
     }
