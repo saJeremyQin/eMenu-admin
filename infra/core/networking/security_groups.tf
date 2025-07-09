@@ -29,14 +29,12 @@ resource "aws_vpc_security_group_ingress_rule" "alb_https_inbound" {
 }
 
 // allow all the outbound traffic (ALB need access to ECS)
-resource "aws_vpc_security_group_outgress_rule" "alb_outbound_all" {
+resource "aws_vpc_security_group_egress_rule" "alb_outbound_all" {
   security_group_id = aws_security_group.alb.id
   description       = "Allow all outbound traffic"
 
   cidr_ipv4   = "0.0.0.0/0"
-  from_port   = 0
   ip_protocol = "-1"
-  to_port     = 0
 }
 
 resource "aws_security_group" "fargate" {
@@ -59,16 +57,10 @@ resource "aws_vpc_security_group_ingress_rule" "fargate_from_alb" {
 
   referenced_security_group_id = aws_security_group.alb.id
 }
-
 // all outbound traffic, ECR, AppSync, CloudWatch
 resource "aws_vpc_security_group_egress_rule" "fargate_outbound_all" {
   security_group_id = aws_security_group.fargate.id
   description       = "Allow all traffic outbound"
-    
-  from_port         = 0
-  to_port           = 0
   ip_protocol       = "-1"
-
-  cidr_ipv4 = "0.0.0.0/0"
-
+  cidr_ipv4         = "0.0.0.0/0"
 }
