@@ -25,7 +25,7 @@ resource "aws_subnet" "public_a" {
   // Instances launched into the subnet should be assigned a public IP address. Why?
   map_public_ip_on_launch = true             
   tags = {
-    Name = "${var.repo_name}public-a"
+    Name = "${var.repo_name}-public-a"
   }
 }
 

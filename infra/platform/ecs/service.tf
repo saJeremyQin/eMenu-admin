@@ -1,7 +1,7 @@
 # Define ECS service, deploy task definition to cluster, and attach to ALB
 resource "aws_ecs_service" "this" {
   name            = "emenu-admin-service"
-  cluster         = aws_ecs_cluster.emenu_admin_cluster.id
+  cluster         = aws_ecs_cluster.this.id
   task_definition = aws_ecs_task_definition.this.arn
 
   desired_count = 1
