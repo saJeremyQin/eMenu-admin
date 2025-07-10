@@ -11,7 +11,7 @@ TAG="latest"
 IMAGE_TAG=$(git rev-parse --short=12 HEAD)
 
 echo "🧱 Building Docker image..."
-docker build -t "${ECR_REGISTRY}/${ECR_REPOSITORY}:${IMAGE_TAG}"  .
+docker buildx build --platform linux/amd64 -t "${ECR_REGISTRY}/${ECR_REPOSITORY}:${IMAGE_TAG}"  .
 
 # latest tag
 docker tag "${ECR_REGISTRY}/${ECR_REPOSITORY}:${IMAGE_TAG}" "${ECR_REGISTRY}/${ECR_REPOSITORY}:latest"
@@ -27,3 +27,5 @@ docker push "${ECR_REGISTRY}/${ECR_REPOSITORY}:${TAG}"
 echo "✅ Done! Image pushed:"
 echo "    - ${ECR_REGISTRY}/${ECR_REPOSITORY}:${IMAGE_TAG}"
 echo "    - ${ECR_REGISTRY}/${ECR_REPOSITORY}:${TAG}"
+
+aws ecs update-service --cluster emenu-admin-cluster --service emenu-admin-service --force-new-deployment

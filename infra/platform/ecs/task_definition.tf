@@ -16,7 +16,15 @@ resource "aws_ecs_task_definition" "this" {
         {
           containerPort = var.container_port
         }
-      ]
+      ],
+      logConfiguration = {
+        logDriver = "awslogs",
+        options = {
+          awslogs-group         = aws_cloudwatch_log_group.ecs_task_logs.name
+          awslogs-region        = "ap-southeast-2"
+          awslogs-stream-prefix = var.service_name
+        }
+      }
     }
   ])
 }
@@ -39,4 +47,9 @@ resource "aws_iam_role" "ecs_task_execution_role" {
 resource "aws_iam_role_policy_attachment" "ecs_task_execution_policy" {
     role = aws_iam_role.ecs_task_execution_role.name
     policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
+}
+
+resource "aws_cloudwatch_log_group" "ecs_task_logs" {
+  name = "ecs/emenu-admin" # Must match your task definition
+  retention_in_days = 7 # Or your desired retention
 }

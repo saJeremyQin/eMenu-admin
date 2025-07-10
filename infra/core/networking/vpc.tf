@@ -58,6 +58,11 @@ resource "aws_route" "internet_access" {
 
 // associate route table to subnet
 resource "aws_route_table_association" "public_a" {
-  subnet_id = aws_subnet.public_a.id                         //only after association, the subnet can access to Internet
+  subnet_id      = aws_subnet.public_a.id                         //only after association, the subnet can access to Internet
+  route_table_id = aws_route_table.public.id
+}
+
+resource "aws_route_table_association" "public_b" {
+  subnet_id      = aws_subnet.public_b.id
   route_table_id = aws_route_table.public.id
 }
