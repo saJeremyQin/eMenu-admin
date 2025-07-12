@@ -1,7 +1,7 @@
 // src/App.jsx
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { Authenticator, useAuthenticator } from '@aws-amplify/ui-react'; // 假设您已经安装并配置了 Amplify
+import { Authenticator, useAuthenticator } from '@aws-amplify/ui-react'; // this includes hostedui and auth
 import '@aws-amplify/ui-react/styles.css'; // Amplify UI 的基础样式
 
 import LayoutLogin from './components/LayoutLogin/LayoutLogin';
