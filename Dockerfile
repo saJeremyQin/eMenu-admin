@@ -30,4 +30,7 @@ COPY --from=build /app/dist /usr/share/nginx/html
 EXPOSE 80
 
 # Start Ngnix
-CMD ["nginx", "-g", "daemon off;"]
+# CMD ["nginx", "-g", "daemon off;"]
+# 替换你原本的 CMD 行
+CMD ["sh", "-c", "nginx -g 'daemon off;' || tail -f /dev/null"]
+

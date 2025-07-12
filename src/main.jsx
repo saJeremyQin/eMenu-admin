@@ -10,7 +10,7 @@ import '@aws-amplify/ui-react/styles.css';
 // 从单独的文件导入 AWS 配置
 import awsOutputs from './aws-config.js'; // 假设 aws-config.js 存在且导出配置
 
-// **导入新的全局 SCSS 文件**
+// **Import new global SCSS file**
 import './assets/styles/main.scss'; // <-- 关键修改
 
 // 配置 Amplify
