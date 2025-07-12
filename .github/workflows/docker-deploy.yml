@@ -52,3 +52,11 @@ jobs:
               run: |
                 docker push "$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
                 docker push "$ECR_REGISTRY/$ECR_REPOSITORY:latest"
+
+            - name: Force ECS service update
+              run: |
+                aws ecs update-service \
+                --cluster emenu-admin-cluster \
+                --service emenu-admin-service \
+                --force-new-deployment \
+                --region $AWS_REGION
