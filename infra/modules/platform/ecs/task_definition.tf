@@ -10,7 +10,7 @@ resource "aws_ecs_task_definition" "this" {
 
   container_definitions = jsonencode([
     {
-      name  = var.service_name
+      name  = "${var.service_name}-${var.env}" 
       image = var.container_image   
       portMappings = [
         {
@@ -22,7 +22,7 @@ resource "aws_ecs_task_definition" "this" {
         options = {
           awslogs-group         = aws_cloudwatch_log_group.ecs_task_logs.name
           awslogs-region        = "ap-southeast-2"
-          awslogs-stream-prefix = var.service_name
+          awslogs-stream-prefix = "${var.repo_name}-${var.env}"
         }
       }
     }
