@@ -1,6 +1,6 @@
 # Define ECS service, deploy task definition to cluster, and attach to ALB
 resource "aws_ecs_service" "this" {
-  name            = "emenu-admin-service"
+  name            = "${var.repo_name}-${var.env}-service"
   cluster         = aws_ecs_cluster.this.id
   task_definition = aws_ecs_task_definition.this.arn
 
@@ -15,7 +15,7 @@ resource "aws_ecs_service" "this" {
 
   load_balancer {
     target_group_arn = aws_alb_target_group.this.arn
-    container_name = "emenu-admin"
+    container_name = "${var.repo_name}-${var.env}"
     container_port = 80
   }
   depends_on = [ aws_alb_listener.this ]

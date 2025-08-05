@@ -50,6 +50,6 @@ resource "aws_iam_role_policy_attachment" "ecs_task_execution_policy" {
 }
 
 resource "aws_cloudwatch_log_group" "ecs_task_logs" {
-  name = "ecs/emenu-admin" # Must match your task definition
+  name = "ecs/${var.repo_name}-${var.env}" # Must match your task definition
   retention_in_days = 7 # Or your desired retention
 }

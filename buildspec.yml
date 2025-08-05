@@ -1,0 +1,21 @@
+# version: 0.2
+
+# env:
+#   variables:
+#     IMAGE_NAME: "emenu-admin"
+
+# phases:
+#   pre_build:
+#     commands:
+#       - echo Logging in to Amazon ECR...
+#       - aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ECR_REGISTRY
+#   build:
+#     commands:
+#       - echo Building image for $ENV environment
+#       - docker build -t $ECR_REPO:$TAG .
+#       - docker tag $ECR_REPO:$TAG $ECR_REGISTRY/$ECR_REPO:$TAG
+#   post_build:
+#     commands:
+#       - echo Pushing image to ECR...
+#       - docker push $ECR_REGISTRY/$ECR_REPO:$TAG6
+#       - echo "Build completed for $ENV"

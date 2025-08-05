@@ -1,12 +1,12 @@
 
 // Define ECS cluster resource
 resource "aws_ecs_cluster" "this" {
-  name = "emenu-admin-cluster"
+  name = "${var.repo_name}-${var.env}-cluster"
 
   tags = {
-    Name = "emenu-admin-cluster"
-    Project = "emenu-admin"
-    Service = "emenu-admin-service"
+    Name = "${var.repo_name}-${var.env}-cluster"
+    Project = "${var.repo_name}-${var.env}-project"
+    Service = "${var.repo_name}-${var.env}-service"
   }
 }
 

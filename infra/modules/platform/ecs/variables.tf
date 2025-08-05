@@ -30,3 +30,15 @@ variable "container_image" {
 variable "container_port" {
   
 }
+
+variable "env" {
+  
+}
+
+variable "app_name" {
+  
+}
+
+variable "repo_name" {
+  
+}

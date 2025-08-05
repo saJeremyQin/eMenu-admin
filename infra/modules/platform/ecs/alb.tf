@@ -1,6 +1,6 @@
 # Define ALB, Target Group and listener
 resource "aws_alb" "this" {
-    name               = "emenu-admin-alb"
+    name               = "${var.repo_name}-${var.env}-alb"
     internal           = false
     load_balancer_type = "application"
     security_groups    = [ var.alb_sg_id ]
@@ -11,7 +11,7 @@ resource "aws_alb" "this" {
 }
 
 resource "aws_alb_target_group" "this" {
-    name        = "emenu-admin-tg"
+    name        = "${var.repo_name}-${var.env}-tg"
     port        = 80
     protocol    = "HTTP"
     vpc_id      = var.vpc_id

@@ -14,7 +14,7 @@ jobs:
           id-token: write              #neccessary for OIDC assume role
         
         env:
-          ECR_REPOSITORY: emenu/emenu-admin
+          ECR_REPOSITORY: emenu/emenu-admin-dev
           ECR_REGISTRY: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.ap-southeast-2.amazonaws.com
           AWS_REGION: ap-southeast-2
         
@@ -56,7 +56,7 @@ jobs:
             - name: Force ECS service update
               run: |
                 aws ecs update-service \
-                --cluster emenu-admin-cluster \
-                --service emenu-admin-service \
+                --cluster emenu-admin-dev-cluster \
+                --service emenu-admin-dev-service \
                 --force-new-deployment \
                 --region $AWS_REGION
