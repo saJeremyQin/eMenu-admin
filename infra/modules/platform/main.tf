@@ -32,11 +32,11 @@ variable "fargate_sg_id" {
   type = string
 }
 
-variable "subnet_public_a_id" {
+variable "public_subnet_a_id" {
   type = string
 }
 
-variable "subnet_public_b_id" {
+variable "public_subnet_b_id" {
   type = string
 }
 
@@ -65,8 +65,8 @@ module "ecs" {
   alb_sg_id     = var.alb_sg_id
   fargate_sg_id = var.fargate_sg_id
 
-  subnet_public_a_id = var.subnet_public_a_id
-  subnet_public_b_id = var.subnet_public_b_id
+  public_subnet_a_id =  var.public_subnet_a_id 
+  public_subnet_b_id =  var.public_subnet_b_id
 
   env = var.environment
 }

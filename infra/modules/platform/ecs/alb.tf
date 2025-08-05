@@ -5,8 +5,8 @@ resource "aws_alb" "this" {
     load_balancer_type = "application"
     security_groups    = [ var.alb_sg_id ]
     subnets = [ 
-        var.subnet_public_a_id,
-        var.subnet_public_b_id
+        var.public_subnet_a_id,
+        var.public_subnet_b_id
     ]
 }
 
