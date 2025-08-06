@@ -1,21 +1,69 @@
-# version: 0.2
+version: 0.2
 
-# env:
-#   variables:
-#     IMAGE_NAME: "emenu-admin"
+env:
+  # 这里的 IMAGE_NAME 看起来是您想在内部定义的变量。
+  # 如果它是一个固定值，可以放在这里。
+  variables:
+    IMAGE_NAME: "emenu-admin" # 这个变量现在只在 buildspec 内部可用
+    ECR_REPOSITORY: "emenu-admin-${ENV}"       
+    AWS_REGION: "ap-southeast-2"                  
+    ECS_CLUSTER_NAME: "emenu-admin-${ENV}-cluster"      
+    ECS_SERVICE_NAME: "emenu-admin-${ENV}-service"      
+    # ECS_CONTAINER_NAME: "/${ENV}/ecs/container_name"  
+    # ECS_CONTAINER_PORT: "/${ENV}/ecs/container_port"  
 
-# phases:
-#   pre_build:
-#     commands:
-#       - echo Logging in to Amazon ECR...
-#       - aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ECR_REGISTRY
-#   build:
-#     commands:
-#       - echo Building image for $ENV environment
-#       - docker build -t $ECR_REPO:$TAG .
-#       - docker tag $ECR_REPO:$TAG $ECR_REGISTRY/$ECR_REPO:$TAG
-#   post_build:
-#     commands:
-#       - echo Pushing image to ECR...
-#       - docker push $ECR_REGISTRY/$ECR_REPO:$TAG6
-#       - echo "Build completed for $ENV"
+  # 从 AWS Systems Manager Parameter Store 获取环境变量
+  # 这些变量的路径将由 CodeBuild 项目传入的 ENV 变量动态构建
+  parameter-store:
+    ECR_REGISTRY: "/emenu-admin/${ENV}/ecr_registry_url"          # 示例路径
+
+
+phases:
+  pre_build:
+    commands:
+      - echo "Logging in to Amazon ECR..."
+      # 引用 Parameter Store 中获取的变量
+      - aws ecr get-login-password --region "${AWS_REGION}" | docker login --username AWS --password-stdin "${ECR_REGISTRY}"
+
+  build:
+    commands:
+      - echo "Building image for ${ENV} environment"       # 引用由 CodeBuild 项目传入的 ENV 变量
+
+      # 修正 Docker build 命令中的变量引用
+      # ECR_REGISTRY 是从 Parameter Store 获取的
+      # IMAGE_TAG 是在 build 阶段动态生成的
+      - IMAGE_TAG=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-12) # CodeBuild 内置变量
+      - docker build -t "${ECR_REGISTRY}/${ECR_REPOSITORY}:${IMAGE_TAG}" .
+      # 修正 Docker tag 命令中的变量引用
+      - docker tag "${ECR_REGISTRY}/${ECR_REPOSITORY}:${IMAGE_TAG}" "${ECR_REGISTRY}/${ECR_REPOSITORY}:latest"
+      # 将 IMAGE_TAG 导出为 CodeBuild 环境变量，以便后续阶段或 CodePipeline 访问
+      - echo "IMAGE_TAG=${IMAGE_TAG}" >> $CODEBUILD_ENV_FILE
+
+  post_build:
+    commands:
+      - echo "Pushing image to ECR..."
+      # 修正 Docker push 命令中的变量引用
+      - docker push "${ECR_REGISTRY}/${ECR_REPOSITORY}:${IMAGE_TAG}"
+      - docker push "${ECR_REGISTRY}/${ECR_REPOSITORY}:latest" # 推送 latest 标签
+
+      - echo "The image tag is: ${IMAGE_TAG} "
+
+      # 如果您决定将部署逻辑保留在 CodeBuild 中
+      # 修正 ECS update-service 命令中的变量引用
+      # - echo "Updating ECS service ${ECS_SERVICE_NAME} in cluster ${ECS_CLUSTER_NAME}..."
+      # - aws ecs update-service \
+      #   --cluster "${ECS_CLUSTER_NAME}" \
+      #   --service "${ECS_SERVICE_NAME}" \
+      #   --force-new-deployment \
+      #   --region "${AWS_REGION}"
+
+      # --- 如果要集成 CodeDeploy，则在这里生成 imagedefinitions.json 和 appspec.yaml ---
+      # - printf '[{"name":"%s","imageUri":"%s"}]' "${ECS_CONTAINER_NAME}" "${ECR_REGISTRY}/${ECR_REPOSITORY}:latest" > imagedefinitions.json
+      # - # ... 生成 appspec.yaml ...
+
+# 定义构建产物 (如果需要传递给 CodePipeline/CodeDeploy)
+artifacts:
+  files:
+    # - 'imagedefinitions.json' # 如果生成了这些文件
+    # - 'appspec.yaml'
+  discard-paths: yes

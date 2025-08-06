@@ -53,3 +53,13 @@ output "alb_dns_name" {
   description = "The dns name of alb, accessible if success"
   value = module.platform_infra.alb_dns_name
 }
+
+# Define variables in parameter store 
+resource "aws_ssm_parameter" "ssm_ecr_registry_url" {
+  description = "ECR Registry URL for ${var.env} environment"
+
+  name      = "${var.repo_name}/${var.env}/ecr_registry_url"
+  value     = module.core_infra.ecr_repository_url
+  type      = "String"
+  overwrite = true  
+}

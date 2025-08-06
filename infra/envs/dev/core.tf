@@ -11,6 +11,6 @@ module "core_infra" {
   region      = "ap-southeast-2"
   environment = var.env
  
-  app_name  = "emenu"
-  repo_name = "emenu-admin"
+  app_name  = var.app_name
+  repo_name = var.repo_name
 }
