@@ -4,25 +4,26 @@ env:
   # 这里的 IMAGE_NAME 看起来是您想在内部定义的变量。
   # 如果它是一个固定值，可以放在这里。
   variables:
-    AWS_REGION: "ap-southeast-2"    
+    AWS_REGION: "ap-southeast-2"
+    ENV: dev    
 
 phases:
   pre_build:
     commands:
       - echo "ENV = ${ENV}"
-      - ECR_REPOSITORY="emenu-admin-${ENV}"
-      - ECS_CLUSTER_NAME="emenu-admin-${ENV}-cluster"
-      - ECS_SERVICE_NAME="emenu-admin-${ENV}-service"
+      - ECR_REPOSITORY="emenu-admin-dev"
+      - ECS_CLUSTER_NAME="emenu-admin-dev-cluster"
+      - ECS_SERVICE_NAME="emenu-admin-dev-service"
 
       - echo "Getting ECR Registry from Parameter Store..."
-      - ECR_REGISTRY=$(aws ssm get-parameter --name "/emenu-admin/${ENV}/ecr_registry_url" --query 'Parameter.Value' --output text)
+      - ECR_REGISTRY=$(aws ssm get-parameter --name "/emenu-admin/dev/ecr_registry_url" --query 'Parameter.Value' --output text)
             
       - echo "Logging in to Amazon ECR..."
       - aws ecr get-login-password --region ap-southeast-2 | docker login --username AWS --password-stdin $ECR_REGISTRY   
    
   build:
     commands:
-      - echo "Building image for ${ENV} environment"       # 引用由 CodeBuild 项目传入的 ENV 变量
+      - echo "Building image for dev environment"       # 引用由 CodeBuild 项目传入的 ENV 变量
       - IMAGE_TAG=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-12) # CodeBuild 内置变量
       - docker build -t "${ECR_REGISTRY}/${ECR_REPOSITORY}:${IMAGE_TAG}" .
       # 修正 Docker tag 命令中的变量引用
