@@ -58,7 +58,7 @@ output "alb_dns_name" {
 resource "aws_ssm_parameter" "ssm_ecr_registry_url" {
   description = "ECR Registry URL for ${var.env} environment"
 
-  name      = "${var.repo_name}/${var.env}/ecr_registry_url"
+  name      = "/${var.repo_name}/${var.env}/ecr_registry_url"
   value     = module.core_infra.ecr_repository_url
   type      = "String"
   overwrite = true  
