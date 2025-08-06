@@ -4,36 +4,25 @@ env:
   # 这里的 IMAGE_NAME 看起来是您想在内部定义的变量。
   # 如果它是一个固定值，可以放在这里。
   variables:
-      
     AWS_REGION: "ap-southeast-2"    
-    ECR_REPOSITORY: "emenu-admin-${ENV}" 
-    ECS_CLUSTER_NAME: "emenu-admin-${ENV}-cluster"      
-    ECS_SERVICE_NAME: "emenu-admin-${ENV}-service"                  
-  
-    # ECS_CONTAINER_NAME: "/${ENV}/ecs/container_name"  
-    # ECS_CONTAINER_PORT: "/${ENV}/ecs/container_port"  
-
-  # 从 AWS Systems Manager Parameter Store 获取环境变量
-  # 这些变量的路径将由 CodeBuild 项目传入的 ENV 变量动态构建
-  parameter-store:
-    ECR_REGISTRY: "/emenu-admin/${ENV}/ecr_registry_url"          # CodeBuild 会自动获取这个路径下的值
-
-
 
 phases:
   pre_build:
     commands:
-      - echo "Logging in to Amazon ECR..."
-      # 引用 Parameter Store 中获取的变量
-      - aws ecr get-login-password --region "${AWS_REGION}" | docker login --username AWS --password-stdin "${ECR_REGISTRY}"
+      - echo "ENV = ${ENV}"
+      - ECR_REPOSITORY="emenu-admin-${ENV}"
+      - ECS_CLUSTER_NAME="emenu-admin-${ENV}-cluster"
+      - ECS_SERVICE_NAME="emenu-admin-${ENV}-service"
 
+      - echo "Getting ECR Registry from Parameter Store..."
+      - ECR_REGISTRY=$(aws ssm get-parameter --name "/emenu-admin/${ENV}/ecr_registry_url" --query 'Parameter.Value' --output text)
+            
+      - echo "Logging in to Amazon ECR..."
+      - aws ecr get-login-password --region ap-southeast-2 | docker login --username AWS --password-stdin $ECR_REGISTRY   
+   
   build:
     commands:
       - echo "Building image for ${ENV} environment"       # 引用由 CodeBuild 项目传入的 ENV 变量
-
-      # 修正 Docker build 命令中的变量引用
-      # ECR_REGISTRY 是从 Parameter Store 获取的
-      # IMAGE_TAG 是在 build 阶段动态生成的
       - IMAGE_TAG=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-12) # CodeBuild 内置变量
       - docker build -t "${ECR_REGISTRY}/${ECR_REPOSITORY}:${IMAGE_TAG}" .
       # 修正 Docker tag 命令中的变量引用
