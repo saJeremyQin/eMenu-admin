@@ -15,12 +15,13 @@ env:
   # 从 AWS Systems Manager Parameter Store 获取环境变量
   # 这些变量的路径将由 CodeBuild 项目传入的 ENV 变量动态构建
   parameter-store:
-    ECR_REGISTRY: "/emenu-admin/${ENV}/ecr_registry_url"          # 示例路径
+    ECR_REGISTRY_PATH: ""          # 示例路径
 
 
 phases:
   pre_build:
     commands:
+      - ECR_REGISTRY = $(aws ssm get-parameter --name "${ECR_REGISTRY_PATH}" --query Parameter.Value --output text)
       - echo "Logging in to Amazon ECR..."
       # 引用 Parameter Store 中获取的变量
       - aws ecr get-login-password --region "${AWS_REGION}" | docker login --username AWS --password-stdin "${ECR_REGISTRY}"
