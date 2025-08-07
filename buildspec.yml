@@ -28,6 +28,8 @@ phases:
       - 'docker tag ${ECR_REGISTRY}:${IMAGE_TAG} ${ECR_REGISTRY}:latest'
       # - 'echo "IMAGE_TAG=${IMAGE_TAG}" >> $CODEBUILD_ENV_FILE'
       # - 'export IMAGE_TAG=$IMAGE_TAG'
+      - 'echo "[{\"name\":\"emenu-admin-dev\",\"imageUri\":\"$ECR_REGISTRY:$IMAGE_TAG\"}]" > imagedefinitions.json'
+
 
   post_build:
     commands:
@@ -38,6 +40,6 @@ phases:
 
 artifacts:
   files:
-    # - 'imagedefinitions.json'
+    - 'imagedefinitions.json'
     # - 'appspec.yaml'
   discard-paths: yes
