@@ -1,8 +1,6 @@
 version: 0.2
 
 env:
-  # 这里的 IMAGE_NAME 看起来是您想在内部定义的变量。
-  # 如果它是一个固定值，可以放在这里。
   variables:
     AWS_REGION: "ap-southeast-2"
     ENV: dev    
@@ -10,54 +8,32 @@ env:
 phases:
   pre_build:
     commands:
-      - echo "ENV = ${ENV}"
-      - ECR_REPOSITORY="emenu-admin-dev"
-      - ECS_CLUSTER_NAME="emenu-admin-dev-cluster"
-      - ECS_SERVICE_NAME="emenu-admin-dev-service"
+      - 'echo "ENV = ${ENV}"'
+      - 'ECR_REPOSITORY="emenu-admin-dev"'
+      - 'ECS_CLUSTER_NAME="emenu-admin-dev-cluster"'
+      - 'ECS_SERVICE_NAME="emenu-admin-dev-service"'
+      - 'echo "Getting ECR Registry from Parameter Store..."'
+      - 'ECR_REGISTRY="205930647566.dkr.ecr.ap-southeast-2.amazonaws.com/emenu"'
+      - 'echo "Logging in to Amazon ECR..."'
+      - 'aws ecr get-login-password --region ap-southeast-2 | docker login --username AWS --password-stdin $ECR_REGISTRY'
 
-      - echo "Getting ECR Registry from Parameter Store..."
-      # - ECR_REGISTRY=$(aws ssm get-parameter --name "/emenu-admin/dev/ecr_registry_url" --query 'Parameter.Value' --output text)
-      - ECR_REGISTRY="205930647566.dkr.ecr.ap-southeast-2.amazonaws.com/emenu"
-
-      - echo "Logging in to Amazon ECR..."
-      - aws ecr get-login-password --region ap-southeast-2 | docker login --username AWS --password-stdin $ECR_REGISTRY   
-   
   build:
     commands:
-      - echo "Building image for dev environment"       # 引用由 CodeBuild 项目传入的 ENV 变量
-      - IMAGE_TAG=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-12) # CodeBuild 内置变量
-
+      - 'echo "Building image for dev environment"'
+      - 'IMAGE_TAG=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-12)'
       - 'docker build -t ${ECR_REGISTRY}/${ECR_REPOSITORY}:${IMAGE_TAG} .'
       - 'docker tag ${ECR_REGISTRY}/${ECR_REPOSITORY}:${IMAGE_TAG} ${ECR_REGISTRY}/${ECR_REPOSITORY}:latest'
-
-      - echo "IMAGE_TAG=${IMAGE_TAG}" >> $CODEBUILD_ENV_FILE
+      - 'echo "IMAGE_TAG=${IMAGE_TAG}" >> $CODEBUILD_ENV_FILE'
 
   post_build:
     commands:
-      - echo "Pushing image to ECR..."
-      # 修正 Docker push 命令中的变量引用
+      - 'echo "Pushing image to ECR..."'
       - 'docker push ${ECR_REGISTRY}/${ECR_REPOSITORY}:${IMAGE_TAG}'
       - 'docker push ${ECR_REGISTRY}/${ECR_REPOSITORY}:latest'
+      - 'echo "The image tag is: ${IMAGE_TAG}"'
 
-
-      - echo "The image tag is: ${IMAGE_TAG} "
-
-      # 如果您决定将部署逻辑保留在 CodeBuild 中
-      # 修正 ECS update-service 命令中的变量引用
-      # - echo "Updating ECS service ${ECS_SERVICE_NAME} in cluster ${ECS_CLUSTER_NAME}..."
-      # - aws ecs update-service \
-      #   --cluster "${ECS_CLUSTER_NAME}" \
-      #   --service "${ECS_SERVICE_NAME}" \
-      #   --force-new-deployment \
-      #   --region "${AWS_REGION}"
-
-      # --- 如果要集成 CodeDeploy，则在这里生成 imagedefinitions.json 和 appspec.yaml ---
-      # - printf '[{"name":"%s","imageUri":"%s"}]' "${ECS_CONTAINER_NAME}" "${ECR_REGISTRY}/${ECR_REPOSITORY}:latest" > imagedefinitions.json
-      # - # ... 生成 appspec.yaml ...
-
-# 定义构建产物 (如果需要传递给 CodePipeline/CodeDeploy)
 artifacts:
   files:
-    # - 'imagedefinitions.json' # 如果生成了这些文件
+    # - 'imagedefinitions.json'
     # - 'appspec.yaml'
   discard-paths: yes
