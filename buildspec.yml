@@ -15,7 +15,7 @@ phases:
       - 'ECS_SERVICE_NAME="emenu-admin-${ENV}-service"'
       - 'echo "Getting ECR Registry from Parameter Store..."'
       # - 'ECR_REGISTRY="205930647566.dkr.ecr.ap-southeast-2.amazonaws.com/emenu"'
-      - 'ECR_REGISTRY=$(aws ssm get-parameter --name "/${REPO_NAME}/${ENV}/ecr_registry_url" --query "Parameter.Value" --output text))'
+      - 'ECR_REGISTRY=$(aws ssm get-parameter --name "/${REPO_NAME}/${ENV}/ecr_registry_url" --query "Parameter.Value" --output text)'
       - 'echo "The ECR_REGISTRY is $ECR_REGISTRY'
       - 'echo "Logging in to Amazon ECR..."'
       - 'aws ecr get-login-password --region ap-southeast-2 | docker login --username AWS --password-stdin $ECR_REGISTRY'
