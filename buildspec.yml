@@ -10,7 +10,7 @@ phases:
   pre_build:
     commands:
       - 'echo "ENV = ${ENV}"'
-      - 'ECR_REPOSITORY="emenu-admin-${ENV}"'
+      # - 'ECR_REPOSITORY="emenu-admin-${ENV}"'
       - 'ECS_CLUSTER_NAME="emenu-admin-${ENV}-cluster"'
       - 'ECS_SERVICE_NAME="emenu-admin-${ENV}-service"'
       - 'echo "Getting ECR Registry from Parameter Store..."'
@@ -24,16 +24,16 @@ phases:
     commands:
       - 'echo "Building image for dev environment"'
       - 'IMAGE_TAG=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-15)'
-      - 'docker build -t ${ECR_REGISTRY}/${ECR_REPOSITORY}:${IMAGE_TAG} .'
-      - 'docker tag ${ECR_REGISTRY}/${ECR_REPOSITORY}:${IMAGE_TAG} ${ECR_REGISTRY}/${ECR_REPOSITORY}:latest'
+      - 'docker build -t ${ECR_REGISTRY}:${IMAGE_TAG} .'
+      - 'docker tag ${ECR_REGISTRY}:${IMAGE_TAG} ${ECR_REGISTRY}:latest'
       # - 'echo "IMAGE_TAG=${IMAGE_TAG}" >> $CODEBUILD_ENV_FILE'
       # - 'export IMAGE_TAG=$IMAGE_TAG'
 
   post_build:
     commands:
       - 'echo "Pushing image to ECR..."'
-      - 'docker push ${ECR_REGISTRY}/${ECR_REPOSITORY}:${IMAGE_TAG}'
-      - 'docker push ${ECR_REGISTRY}/${ECR_REPOSITORY}:latest'
+      - 'docker push ${ECR_REGISTRY}:${IMAGE_TAG}'
+      - 'docker push ${ECR_REGISTRY}:latest'
       - 'echo "The image tag is: ${IMAGE_TAG}"'
 
 artifacts:
