@@ -10,8 +10,16 @@ resource "aws_alb" "this" {
     ]
 }
 
-resource "aws_alb_target_group" "this" {
-    name        = "${var.repo_name}-${var.env}-tg"
+resource "aws_alb_target_group" "blue" {
+    name        = "${var.repo_name}-${var.env}-blue-tg"
+    port        = 80
+    protocol    = "HTTP"
+    vpc_id      = var.vpc_id
+    target_type = "ip"
+}
+
+resource "aws_alb_target_group" "green" {
+    name        = "${var.repo_name}-${var.env}-green-tg"
     port        = 80
     protocol    = "HTTP"
     vpc_id      = var.vpc_id
@@ -25,6 +33,20 @@ resource "aws_alb_listener" "this" {
 
     default_action {
       type             = "forward"
-      target_group_arn = aws_alb_target_group.this.arn
+      target_group_arn = aws_alb_target_group.blue.arn
     }
 }
+
+# resource "aws_alb_listener_rule" "green" {
+#     listener_arn = aws_alb_listener.this.arn
+#     priority     = 100
+#     action {
+#       type             = "forward"
+#       target_group_arn = aws_alb_target_group.green.arn
+#     }
+#     condition {
+#       path_pattern {
+#         values = [ "/green*" ]
+#       }
+#     }
+# }

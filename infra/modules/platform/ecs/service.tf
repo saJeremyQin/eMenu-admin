@@ -14,9 +14,18 @@ resource "aws_ecs_service" "this" {
   }
 
   load_balancer {
-    target_group_arn = aws_alb_target_group.this.arn
+    target_group_arn = aws_alb_target_group.blue.arn
     container_name = "${var.repo_name}-${var.env}"
     container_port = 80
   }
+  # load_balancer {
+  #   target_group_arn = aws_alb_target_group.green.arn
+  #   container_name = "${var.repo_name}-${var.env}"
+  #   container_port = 80
+  # }
+
   depends_on = [ aws_alb_listener.this ]
+  deployment_controller {
+    type = "CODE_DEPLOY"
+  }
 }

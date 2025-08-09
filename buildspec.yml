@@ -37,9 +37,27 @@ phases:
       - 'docker push ${ECR_REGISTRY}:${IMAGE_TAG}'
       - 'docker push ${ECR_REGISTRY}:latest'
       - 'echo "The image tag is: ${IMAGE_TAG}"'
+      - 'echo "Creating appspec.yml'
 
+      - |
+        cat <<EOF > appspec.yaml
+        version: 0.0
+        Resources:
+          - TargetService:
+              Type: AWS::ECS::Service
+              Properties:
+                TaskDefinition: <TASK_DEFINITION>
+                LoadBalancerInfo:
+                  TargetGroupPairInfo:
+                    TargetGroups:
+                      - Name: emenu-admin-${ENV}-blue-tg
+                      - Name: emenu-admin-${ENV}-green-tg
+                    ProdTrafficRoute:
+                      ListenerArns:
+                        - arn:aws:elasticloadbalancing:${AWS_REGION}:205930647566:listener/app/emenu-admin-${ENV}-alb/825c52375db1aa4a/cb6d0d71cc84e367
+        EOF
 artifacts:
   files:
     - 'imagedefinitions.json'
-    # - 'appspec.yaml'
+    - 'appspec.yaml'
   discard-paths: yes
