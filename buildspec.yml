@@ -37,7 +37,8 @@ phases:
       - 'docker push ${ECR_REGISTRY}:${IMAGE_TAG}'
       - 'docker push ${ECR_REGISTRY}:latest'
       - 'echo "The image tag is: ${IMAGE_TAG}"'
-      - 'echo "Creating appspec.yml"'
+      - 'echo "Creating appspec.yml'
+      - 'TASK_DEF_ARN=$(aws ecs describe-task-definition --task-definition emenu-admin-${ENV} --query "taskDefinition.taskDefinitionArn" --output text)'
 
       - |
         cat <<E_O_F > appspec.yml
@@ -46,7 +47,7 @@ phases:
           - TargetService:
               Type: AWS::ECS::Service
               Properties:
-                TaskDefinition: <TASK_DEFINITION>
+                TaskDefinition: ${TASK_DEF_ARN}
                 LoadBalancerInfo:
                   TargetGroupPairInfo:
                     TargetGroups:
