@@ -39,6 +39,7 @@ phases:
       - 'echo "The image tag is: ${IMAGE_TAG}"'
       - 'echo "Creating appspec.yml"'
       - 'TASK_DEF_ARN=$(aws ecs describe-task-definition --task-definition emenu-admin-${ENV} --query "taskDefinition.taskDefinitionArn" --output text)'
+      - 'LISTENER_ARN=$(aws elbv2 describe-listeners --load-balancer-arn $(aws elbv2 describe-load-balancers --names emenu-admin-${ENV}-alb --query "LoadBalancers[0].LoadBalancerArn" --output text) --query "Listeners[?Port==\`80\`].ListenerArn" --output text)'
 
       - |
         cat <<E_O_F > appspec.yml
