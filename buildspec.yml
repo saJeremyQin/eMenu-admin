@@ -40,7 +40,7 @@ phases:
       - 'echo "Creating appspec.yml'
 
       - |
-        cat <<EOF > appspec.yaml
+        cat <<E_O_F > appspec.yml
         version: 0.0
         Resources:
           - TargetService:
@@ -55,9 +55,9 @@ phases:
                     ProdTrafficRoute:
                       ListenerArns:
                         - arn:aws:elasticloadbalancing:${AWS_REGION}:205930647566:listener/app/emenu-admin-${ENV}-alb/825c52375db1aa4a/cb6d0d71cc84e367
-        EOF
+        E_O_F
 artifacts:
   files:
     - 'imagedefinitions.json'
-    - 'appspec.yaml'
+    - 'appspec.yml'
   discard-paths: yes
