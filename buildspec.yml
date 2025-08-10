@@ -3,83 +3,68 @@ version: 0.2
 env:
   variables:
     AWS_REGION: "ap-southeast-2"
-    # ENV: dev
-
 
 phases:
   pre_build:
     commands:
-      - 'echo "ENV = ${ENV}"'
-      # - 'ECR_REPOSITORY="emenu-admin-${ENV}"'
-      - 'ECS_CLUSTER_NAME="emenu-admin-${ENV}-cluster"'
-      - 'ECS_SERVICE_NAME="emenu-admin-${ENV}-service"'
-      - 'echo "Getting ECR Registry from Parameter Store..."'
-      # - 'ECR_REGISTRY="205930647566.dkr.ecr.ap-southeast-2.amazonaws.com/emenu"'
-      - 'ECR_REGISTRY=$(aws ssm get-parameter --name "/emenu-admin/${ENV}/ecr_registry_url" --query "Parameter.Value" --output text)'
-      - 'echo "The ECR_REGISTRY is $ECR_REGISTRY"'
-      - 'echo "Logging in to Amazon ECR..."'
-      - 'aws ecr get-login-password --region ap-southeast-2 | docker login --username AWS --password-stdin $ECR_REGISTRY'
+      - echo "ENV = ${ENV}"
+      - ECS_CLUSTER_NAME="emenu-admin-${ENV}-cluster"
+      - ECS_SERVICE_NAME="emenu-admin-${ENV}-service"
+      - echo "Getting ECR Registry from Parameter Store..."
+      - ECR_REGISTRY=$(aws ssm get-parameter --name "/emenu-admin/${ENV}/ecr_registry_url" --query "Parameter.Value" --output text)
+      - echo "The ECR_REGISTRY is $ECR_REGISTRY"
+      - echo "Logging in to Amazon ECR..."
+      - aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ECR_REGISTRY
 
   build:
     commands:
-      - 'echo "Building image for dev environment"'
-      - 'IMAGE_TAG=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-15)'
-      - 'docker build -t ${ECR_REGISTRY}:${IMAGE_TAG} .'
-      - 'docker tag ${ECR_REGISTRY}:${IMAGE_TAG} ${ECR_REGISTRY}:latest'
-      # - 'echo "IMAGE_TAG=${IMAGE_TAG}" >> $CODEBUILD_ENV_FILE'
-      # - 'export IMAGE_TAG=$IMAGE_TAG'
-      - 'echo "[{\"name\":\"emenu-admin-dev\",\"imageUri\":\"$ECR_REGISTRY:$IMAGE_TAG\"}]" > imagedefinitions.json'
+      - echo "Building image for ${ENV} environment"
+      - IMAGE_TAG=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-15)
+      - docker build -t ${ECR_REGISTRY}:${IMAGE_TAG} .
+      - docker tag ${ECR_REGISTRY}:${IMAGE_TAG} ${ECR_REGISTRY}:latest
+      - echo "[{\"name\":\"emenu-admin-${ENV}\",\"imageUri\":\"$ECR_REGISTRY:$IMAGE_TAG\"}]" > imagedefinitions.json
 
-      # 生成正确缩进的 appspec.yml
-      # - |
-      #   cat > appspec.yml <<E_O_F
-      #   version: 0.0
-      #   Resources:
-      #     - TargetService:
-      #         Type: AWS::ECS::Service
-      #         Properties:
-      #           TaskDefinition: ${TASK_DEF_ARN}
-      #           LoadBalancerInfo:
-      #             TargetGroupPairInfo:
-      #               TargetGroups:
-      #                 - Name: emenu-admin-${ENV}-blue-tg
-      #                 - Name: emenu-admin-${ENV}-green-tg
-      #               ProdTrafficRoute:
-      #                 ListenerArns:
-      #                   - ${LISTENER_ARN}
-      #   E_O_F
-  
   post_build:
-      commands:
-        - 'echo "Pushing image to ECR..."'
-        - 'docker push ${ECR_REGISTRY}:${IMAGE_TAG}'
-        - 'docker push ${ECR_REGISTRY}:latest'
-        - 'echo "The image tag is: ${IMAGE_TAG}"'
-        - 'echo "Creating appspec.yml..."'
+    commands:
+      - echo "Pushing image to ECR..."
+      - docker push ${ECR_REGISTRY}:${IMAGE_TAG}
+      - docker push ${ECR_REGISTRY}:latest
+      - echo "The image tag is: ${IMAGE_TAG}"
 
-        # 获取 Task Definition ARN
-        - 'TASK_DEF_ARN=$(aws ecs describe-task-definition --task-definition emenu-admin --query "taskDefinition.taskDefinitionArn" --output text)'
-        - 'echo "Task Definition ARN: ${TASK_DEF_ARN}"'
+      # 获取 Task Definition ARN
+      - TASK_DEF_ARN=$(aws ecs describe-task-definition --task-definition emenu-admin --query "taskDefinition.taskDefinitionArn" --output text)
+      - echo "Task Definition ARN: ${TASK_DEF_ARN}"
 
-        # 获取 Listener ARN
-        - 'LISTENER_ARN=$(aws elbv2 describe-listeners --load-balancer-arn $(aws elbv2 describe-load-balancers --names emenu-admin-${ENV}-alb --query "LoadBalancers[0].LoadBalancerArn" --output text) --query "Listeners[?Port==\`80\`].ListenerArn" --output text)'
-        - 'echo "Listener ARN: ${LISTENER_ARN}"'
+      # 获取 Listener ARN
+      - LISTENER_ARN=$(aws elbv2 describe-listeners \
+          --load-balancer-arn "$(aws elbv2 describe-load-balancers \
+            --names emenu-admin-${ENV}-alb \
+            --query "LoadBalancers[0].LoadBalancerArn" \
+            --output text)" \
+          --query "Listeners[?Port==\`80\`].ListenerArn" \
+          --output text)
+      - echo "Listener ARN: ${LISTENER_ARN}"
 
-        # 使用 printf 生成 appspec.yml，确保每个缩进和换行都精确控制
-        - 'printf "version: 0.0\n" > appspec.yml'
-        - 'printf "Resources:\n" >> appspec.yml'
-        - 'printf "  - TargetService:\n" >> appspec.yml'
-        - 'printf "      Type: AWS::ECS::Service\n" >> appspec.yml'
-        - 'printf "      Properties:\n" >> appspec.yml'
-        - 'printf "        TaskDefinition: \"%s\"\n" "${TASK_DEF_ARN}" >> appspec.yml'
-        - 'printf "        LoadBalancerInfo:\n" >> appspec.yml'
-        - 'printf "          TargetGroupPairInfo:\n" >> appspec.yml'
-        - 'printf "            TargetGroups:\n" >> appspec.yml'
-        - 'printf "              - Name: emenu-admin-%s-blue-tg\n" "${ENV}" >> appspec.yml'
-        - 'printf "              - Name: emenu-admin-%s-green-tg\n" "${ENV}" >> appspec.yml'
-        - 'printf "            ProdTrafficRoute:\n" >> appspec.yml'
-        - 'printf "              ListenerArns:\n" >> appspec.yml'
-        - 'printf "                - \"%s\"\n" "${LISTENER_ARN}" >> appspec.yml'
+      # 生成 appspec.yml（严格缩进）
+      - |
+        cat > appspec.yml <<E_O_F
+        version: 0.0
+        Resources:
+          - TargetService:
+              Type: AWS::ECS::Service
+              Properties:
+                TaskDefinition: ${TASK_DEF_ARN}
+                LoadBalancerInfo:
+                  TargetGroupPairInfo:
+                    TargetGroups:
+                      - Name: emenu-admin-${ENV}-blue-tg
+                      - Name: emenu-admin-${ENV}-green-tg
+                    ProdTrafficRoute:
+                      ListenerArns:
+                        - ${LISTENER_ARN}
+        E_O_F
+      - echo "Generated appspec.yml:"
+      - cat appspec.yml
 
 artifacts:
   files:
