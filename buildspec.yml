@@ -66,20 +66,20 @@ phases:
         - 'echo "Listener ARN: ${LISTENER_ARN}"'
 
         # 使用 printf 生成 appspec.yml，确保每个缩进和换行都精确控制
-        - printf "version: 0.0\n" > appspec.yml
-        - printf "Resources:\n" >> appspec.yml
-        - printf "  - TargetService:\n" >> appspec.yml
-        - printf "      Type: AWS::ECS::Service\n" >> appspec.yml
-        - printf "      Properties:\n" >> appspec.yml
-        - printf "        TaskDefinition: \"%s\"\n" "${TASK_DEF_ARN}" >> appspec.yml
-        - printf "        LoadBalancerInfo:\n" >> appspec.yml
-        - printf "          TargetGroupPairInfo:\n" >> appspec.yml
-        - printf "            TargetGroups:\n" >> appspec.yml
-        - printf "              - Name: emenu-admin-%s-blue-tg\n" "${ENV}" >> appspec.yml
-        - printf "              - Name: emenu-admin-%s-green-tg\n" "${ENV}" >> appspec.yml
-        - printf "            ProdTrafficRoute:\n" >> appspec.yml
-        - printf "              ListenerArns:\n" >> appspec.yml
-        - printf "                - \"%s\"\n" "${LISTENER_ARN}" >> appspec.yml
+        - 'printf "version: 0.0\n" > appspec.yml'
+        - 'printf "Resources:\n" >> appspec.yml'
+        - 'printf "  - TargetService:\n" >> appspec.yml'
+        - 'printf "      Type: AWS::ECS::Service\n" >> appspec.yml'
+        - 'printf "      Properties:\n" >> appspec.yml'
+        - 'printf "        TaskDefinition: \"%s\"\n" "${TASK_DEF_ARN}" >> appspec.yml'
+        - 'printf "        LoadBalancerInfo:\n" >> appspec.yml'
+        - 'printf "          TargetGroupPairInfo:\n" >> appspec.yml'
+        - 'printf "            TargetGroups:\n" >> appspec.yml'
+        - 'printf "              - Name: emenu-admin-%s-blue-tg\n" "${ENV}" >> appspec.yml'
+        - 'printf "              - Name: emenu-admin-%s-green-tg\n" "${ENV}" >> appspec.yml'
+        - 'printf "            ProdTrafficRoute:\n" >> appspec.yml'
+        - 'printf "              ListenerArns:\n" >> appspec.yml'
+        - 'printf "                - \"%s\"\n" "${LISTENER_ARN}" >> appspec.yml'
 
 artifacts:
   files:
