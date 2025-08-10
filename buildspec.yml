@@ -36,13 +36,7 @@ phases:
       - 'echo "Task Definition ARN: ${TASK_DEF_ARN}"'
 
       # 获取 Listener ARN
-      - LISTENER_ARN=$(aws elbv2 describe-listeners \
-          --load-balancer-arn "$(aws elbv2 describe-load-balancers \
-            --names emenu-admin-${ENV}-alb \
-            --query "LoadBalancers[0].LoadBalancerArn" \
-            --output text)" \
-          --query "Listeners[?Port==\`80\`].ListenerArn" \
-          --output text)
+      - 'LISTENER_ARN=$(aws elbv2 describe-listeners --load-balancer-arn $(aws elbv2 describe-load-balancers --names emenu-admin-${ENV}-alb --query "LoadBalancers[0].LoadBalancerArn" --output text) --query "Listeners[?Port==\`80\`].ListenerArn" --output text)'
       - 'echo "Listener ARN: ${LISTENER_ARN}"'
 
       # 生成 appspec.yml（严格缩进）
