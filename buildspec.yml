@@ -39,28 +39,36 @@ phases:
       - 'echo "The image tag is: ${IMAGE_TAG}"'
       - 'echo "Checking ENV variable in post_build: ${ENV}"'
       - 'echo "Creating appspec.yml"'
-      - 'TASK_DEF_ARN=$(aws ecs describe-task-definition --task-definition emenu-admin --query "taskDefinition.taskDefinitionArn" --output text)'
-      - 'LISTENER_ARN=$(aws elbv2 describe-listeners --load-balancer-arn $(aws elbv2 describe-load-balancers --names emenu-admin-${ENV}-alb --query "LoadBalancers[0].LoadBalancerArn" --output text) --query "Listeners[?Port==\`80\`].ListenerArn" --output text)'
 
+      # 获取 Task Definition ARN
+      - 'TASK_DEF_ARN=$(aws ecs describe-task-definition --task-definition emenu-admin --query "taskDefinition.taskDefinitionArn" --output text)'
+
+      # 获取 Listener ARN（80端口）
+      - 'LISTENER_ARN=$(aws elbv2 describe-listeners \
+          --load-balancer-arn $(aws elbv2 describe-load-balancers --names emenu-admin-${ENV}-alb --query "LoadBalancers[0].LoadBalancerArn" --output text) \
+          --query "Listeners[?Port==\`80\`].ListenerArn" --output text)'
+
+      # 生成正确缩进的 appspec.yml
       - |
         cat > appspec.yml <<E_O_F
         version: 0.0
         Resources:
           - TargetService:
-            Type: AWS::ECS::Service
-            Properties:
-              TaskDefinition: ${TASK_DEF_ARN}
-              LoadBalancerInfo:
-                TargetGroupPairInfo:
-                  TargetGroups:
-                    - Name: emenu-admin-${ENV}-blue-tg
-                    - Name: emenu-admin-${ENV}-green-tg
-                  ProdTrafficRoute:
-                    ListenerArns:
-                      - arn:aws:elasticloadbalancing:${AWS_REGION}:205930647566:listener/app/emenu-admin-${ENV}-alb/825c52375db1aa4a/cb6d0d71cc84e367
+              Type: AWS::ECS::Service
+              Properties:
+                TaskDefinition: ${TASK_DEF_ARN}
+                LoadBalancerInfo:
+                  TargetGroupPairInfo:
+                    TargetGroups:
+                      - Name: emenu-admin-${ENV}-blue-tg
+                      - Name: emenu-admin-${ENV}-green-tg
+                    ProdTrafficRoute:
+                      ListenerArns:
+                        - ${LISTENER_ARN}
         E_O_F
 artifacts:
   files:
     - 'imagedefinitions.json'
     - 'appspec.yml'
   discard-paths: yes
+  
