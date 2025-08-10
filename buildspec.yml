@@ -60,6 +60,8 @@ phases:
       - echo "" >> appspec.yml
       - echo "Generated appspec.yml:"
       - cat appspec.yml
+      - echo "Validating appspec.yml syntax..."
+      - python -c "import yaml; yaml.safe_load(open('appspec.yml'))"
 
 artifacts:
   files:
