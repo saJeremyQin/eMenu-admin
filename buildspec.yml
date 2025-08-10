@@ -44,9 +44,15 @@ phases:
       - 'TASK_DEF_ARN=$(aws ecs describe-task-definition --task-definition emenu-admin --query "taskDefinition.taskDefinitionArn" --output text)'
 
       # 获取 Listener ARN（80端口）
-      - 'LISTENER_ARN=$(aws elbv2 describe-listeners \
-          --load-balancer-arn $(aws elbv2 describe-load-balancers --names emenu-admin-${ENV}-alb --query "LoadBalancers[0].LoadBalancerArn" --output text) \
-          --query "Listeners[?Port==\`80\`].ListenerArn" --output text)'
+      - |
+        LISTENER_ARN=$(aws elbv2 describe-listeners \
+          --load-balancer-arn "$(aws elbv2 describe-load-balancers \
+            --names emenu-admin-${ENV}-alb \
+            --query "LoadBalancers[0].LoadBalancerArn" \
+            --output text)" \
+          --query "Listeners[?Port==\`80\`].ListenerArn" \
+          --output text)
+        echo "Listener ARN: ${LISTENER_ARN}"
 
       # 生成正确缩进的 appspec.yml
       - |
@@ -71,4 +77,3 @@ artifacts:
     - 'imagedefinitions.json'
     - 'appspec.yml'
   discard-paths: yes
-  
