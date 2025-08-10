@@ -41,7 +41,7 @@ phases:
 
       # 生成 appspec.yml（严格缩进）
       - |
-        cat > appspec.yml <<E_O_F
+        cat > appspec.yml <<EOL
         version: 0.0
         Resources:
           - TargetService:
@@ -56,7 +56,8 @@ phases:
                     ProdTrafficRoute:
                       ListenerArns:
                         - ${LISTENER_ARN}
-        E_O_F
+        EOL
+      - echo "" >> appspec.yml
       - echo "Generated appspec.yml:"
       - cat appspec.yml
 
