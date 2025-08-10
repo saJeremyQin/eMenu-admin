@@ -32,7 +32,7 @@ phases:
       - 'echo "The image tag is: ${IMAGE_TAG}"'
 
       # 获取 Task Definition ARN
-      - TASK_DEF_ARN=$(aws ecs describe-task-definition --task-definition emenu-admin --query "taskDefinition.taskDefinitionArn" --output text)
+      - TASK_DEF_ARN=$(aws ecs describe-task-definition --task-definition emenu-admin-${ENV} --query "taskDefinition.taskDefinitionArn" --output text)
       - 'echo "Task Definition ARN: ${TASK_DEF_ARN}"'
 
       # 获取 Listener ARN

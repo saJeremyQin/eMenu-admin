@@ -1,6 +1,6 @@
 # define ECS task definition, including container image, port mappling, CPU/Memory
 resource "aws_ecs_task_definition" "this" {
-  family                   = var.service_name
+  family                   = "${var.service_name}-${var.env}" 
   requires_compatibilities = [ "FARGATE" ]
   network_mode             = "awsvpc"
   cpu                      = "256"
