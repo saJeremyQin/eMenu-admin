@@ -25,7 +25,7 @@ resource "aws_ecs_service" "this" {
   # }
 
   depends_on = [ aws_alb_listener.this ]
-  deployment_controller {
-    type = "CODE_DEPLOY"
-  }
+  # deployment_controller {
+  #   type = "CODE_DEPLOY"
+  # }
 }
