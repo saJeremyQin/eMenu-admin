@@ -49,8 +49,8 @@ phases:
               Properties:
                 TaskDefinition: ${TASK_DEF_ARN}
                 LoadBalancerInfo:
-                  TargetGroupPairInfo:
-                    TargetGroups:
+                  TargetGroupPairInfoList:
+                    - TargetGroups:
                       - Name: emenu-admin-${ENV}-blue-tg
                       - Name: emenu-admin-${ENV}-green-tg
                     ProdTrafficRoute:
