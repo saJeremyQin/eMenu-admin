@@ -1,6 +1,6 @@
 
 module "platform_infra" {
-  source = "../../modules/platform"    # 指向 core 模块的路径
+  source = "../../modules/platform"    # 指向 platform 模块的路径
 
   app_name     = var.app_name
   repo_name    = var.repo_name
