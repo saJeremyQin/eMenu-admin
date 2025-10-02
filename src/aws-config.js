@@ -5,8 +5,8 @@ import { signUp } from "aws-amplify/auth";
     const awsOutputs = {
       Auth: {
         Cognito: {
-          userPoolId: 'ap-southeast-2_2WdKaZBr3',
-          userPoolClientId: '40nv3qru4flrlbcjftgq7qd7q0',
+          userPoolId: 'ap-southeast-2_QJtyPfP6J',
+          userPoolClientId: '2pshheuhdc0tlh7te6vjcip89v',
           region: 'ap-southeast-2',
           signUpAttributes: ['EMAIL'],
           verificationMechanisms: ['EMAIL'],
@@ -14,7 +14,7 @@ import { signUp } from "aws-amplify/auth";
       },
       API: {
         GraphQL: {
-          endpoint: 'https://bg3tjhivtnajvanipkiujecj6q.appsync-api.ap-southeast-2.amazonaws.com/graphql',
+          endpoint: 'https://h4pqvuqsw5dklkaexrf7ugesam.appsync-api.ap-southeast-2.amazonaws.com/graphql',
           region: 'ap-southeast-2',
           defaultAuthMode: 'userPool', // 或 'apiKey' 等
         },
