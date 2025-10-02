@@ -5,8 +5,8 @@ import { signUp } from "aws-amplify/auth";
     const awsOutputs = {
       Auth: {
         Cognito: {
-          userPoolId: 'ap-southeast-2_QJtyPfP6J',
-          userPoolClientId: '2pshheuhdc0tlh7te6vjcip89v',
+          userPoolId: 'ap-southeast-2_Mw4J3zNoQ',
+          userPoolClientId: '4l90vqi7nfam318ci1tml91j3n',
           region: 'ap-southeast-2',
           signUpAttributes: ['EMAIL'],
           verificationMechanisms: ['EMAIL'],
