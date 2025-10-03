@@ -1,8 +1,9 @@
 import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { uploadData, getUrl } from 'aws-amplify/storage';
 import { v4 as uuidv4 } from 'uuid';
 import { generateClient } from 'aws-amplify/api';
-import { getCurrentUser, fetchAuthSession } from 'aws-amplify/auth';
+import { getCurrentUser } from 'aws-amplify/auth';
 import styles from './CreateRestaurant.module.scss';
 
 const client = generateClient();
@@ -65,47 +66,26 @@ const CreateRestaurant = () => {
     setProcessing(false);
     
     try {
-      // 获取当前用户的AWS凭证
-      const session = await fetchAuthSession();
-      const credentials = session.credentials;
-      
-      if (!credentials) {
-        throw new Error('Unable to get AWS credentials');
-      }
-
-      // 动态导入AWS SDK v3
-      const { S3Client, PutObjectCommand, HeadObjectCommand } = await import('@aws-sdk/client-s3');
-      
-      // 创建S3客户端
-      const s3Client = new S3Client({
-        region: 'ap-southeast-2',
-        credentials: {
-          accessKeyId: credentials.accessKeyId,
-          secretAccessKey: credentials.secretAccessKey,
-          sessionToken: credentials.sessionToken
-        }
-      });
-
       // 生成唯一文件名
       const fileExtension = selectedFile.name.split('.').pop();
       const uniqueFileName = `${uuidv4()}.${fileExtension}`;
       const rawKey = `restaurant-logos/raw/${uniqueFileName}`;
       const processedKey = `restaurant-logos/processed/${uuidv4()}.jpg`;
 
-      // 上传到S3的raw文件夹
-      const uploadCommand = new PutObjectCommand({
-        Bucket: 'emenu-restaurant-assets-dev',
-        Key: rawKey,
-        Body: selectedFile,
-        ContentType: selectedFile.type,
-        Metadata: {
-          'upload-timestamp': new Date().toISOString(),
-          'original-name': selectedFile.name
+      // 使用Amplify Storage API上传到S3
+      const result = await uploadData({
+        key: rawKey,
+        data: selectedFile,
+        options: {
+          contentType: selectedFile.type,
+          metadata: {
+            'upload-timestamp': new Date().toISOString(),
+            'original-name': selectedFile.name
+          }
         }
-      });
+      }).result;
 
-      await s3Client.send(uploadCommand);
-      console.log('Upload successful');
+      console.log('Upload successful:', result);
 
       // Lambda会自动处理图片，生成处理后的URL
       const processedUrl = `https://emenu-restaurant-assets-dev.s3.ap-southeast-2.amazonaws.com/${processedKey}`;
@@ -115,7 +95,7 @@ const CreateRestaurant = () => {
       
       // 轮询检查处理是否完成
       setTimeout(() => {
-        checkImageProcessing(processedKey, s3Client);
+        checkImageProcessing(processedKey);
       }, 3000);
       
       alert('Image uploaded successfully! Processing in background...');
@@ -128,7 +108,7 @@ const CreateRestaurant = () => {
     }
   };
 
-  const checkImageProcessing = async (processedKey, s3Client, attempts = 0) => {
+  const checkImageProcessing = async (processedKey, attempts = 0) => {
     if (attempts > 10) {
       setProcessing(false);
       alert('Image processing is taking longer than expected. You can still create the restaurant.');
@@ -136,27 +116,25 @@ const CreateRestaurant = () => {
     }
 
     try {
-      const { HeadObjectCommand } = await import('@aws-sdk/client-s3');
-      
-      const headCommand = new HeadObjectCommand({
-        Bucket: 'emenu-restaurant-assets-dev',
-        Key: processedKey
+      // 尝试获取处理后的图片URL
+      const urlResult = await getUrl({
+        key: processedKey
       });
       
-      await s3Client.send(headCommand);
-      
-      // 图片处理完成
-      setProcessing(false);
-      console.log('Image processing completed');
-      
-      // 更新显示的图片URL
-      const processedUrl = `https://emenu-restaurant-assets-dev.s3.ap-southeast-2.amazonaws.com/${processedKey}`;
-      setUploadedImageUrl(processedUrl);
-      
+      // 检查URL是否可访问
+      const response = await fetch(urlResult.url, { method: 'HEAD' });
+      if (response.ok) {
+        // 图片处理完成
+        setProcessing(false);
+        console.log('Image processing completed');
+        setUploadedImageUrl(urlResult.url.toString());
+      } else {
+        throw new Error('Image not ready');
+      }
     } catch (error) {
       // 图片还在处理中，继续等待
       setTimeout(() => {
-        checkImageProcessing(processedKey, s3Client, attempts + 1);
+        checkImageProcessing(processedKey, attempts + 1);
       }, 2000);
     }
   };

@@ -40,6 +40,14 @@ module "s3" {
   region      = var.region
 }
 
+module "cognito_identity" {
+  source                          = "./cognito-identity"
+  environment                     = var.environment
+  cognito_user_pool_client_id     = "4l90vqi7nfam318ci1tml91j3n"
+  cognito_user_pool_provider_name = "cognito-idp.ap-southeast-2.amazonaws.com/ap-southeast-2_Mw4J3zNoQ"
+  s3_bucket_arn                   = module.s3.s3_bucket_arn
+}
+
 # outputs
 # 暴露 networking 模块的输出作为 core 模块的输出
 output "vpc_id" {
@@ -97,4 +105,10 @@ output "s3_bucket_arn" {
 output "s3_bucket_domain_name" {
   description = "The domain name of the S3 bucket."
   value       = module.s3.s3_bucket_domain_name
+}
+
+# 暴露 cognito-identity 模块的输出作为 core 模块的输出
+output "cognito_identity_pool_id" {
+  description = "The ID of the Cognito Identity Pool."
+  value       = module.cognito_identity.identity_pool_id
 }

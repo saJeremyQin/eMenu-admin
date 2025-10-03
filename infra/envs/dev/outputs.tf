@@ -54,6 +54,11 @@ output "s3_bucket_domain_name" {
   value       = module.core_infra.s3_bucket_domain_name
 }
 
+output "cognito_identity_pool_id" {
+  description = "The ID of the Cognito Identity Pool."
+  value       = module.core_infra.cognito_identity_pool_id
+}
+
 # 定义 platform 模块的输出 (如果需要)
 output "ecs_cluster_name" {
   description = "The name of the ECS cluster for dev environment."
