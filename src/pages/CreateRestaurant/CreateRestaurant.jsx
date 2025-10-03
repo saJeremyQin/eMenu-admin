@@ -1,18 +1,9 @@
 import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import AWS from 'aws-sdk';
 import { v4 as uuidv4 } from 'uuid';
 import { generateClient } from 'aws-amplify/api';
-import { getCurrentUser } from 'aws-amplify/auth';
+import { getCurrentUser, fetchAuthSession } from 'aws-amplify/auth';
 import styles from './CreateRestaurant.module.scss';
-
-// 配置AWS SDK - 这些值需要从环境变量获取
-const s3 = new AWS.S3({
-  region: 'ap-southeast-2',
-  // 注意：在生产环境中，建议使用IAM角色而不是Access Key
-  accessKeyId: process.env.REACT_APP_AWS_ACCESS_KEY_ID,
-  secretAccessKey: process.env.REACT_APP_AWS_SECRET_ACCESS_KEY
-});
 
 const client = generateClient();
 
@@ -74,15 +65,36 @@ const CreateRestaurant = () => {
     setProcessing(false);
     
     try {
+      // 获取当前用户的AWS凭证
+      const session = await fetchAuthSession();
+      const credentials = session.credentials;
+      
+      if (!credentials) {
+        throw new Error('Unable to get AWS credentials');
+      }
+
+      // 动态导入AWS SDK v3
+      const { S3Client, PutObjectCommand, HeadObjectCommand } = await import('@aws-sdk/client-s3');
+      
+      // 创建S3客户端
+      const s3Client = new S3Client({
+        region: 'ap-southeast-2',
+        credentials: {
+          accessKeyId: credentials.accessKeyId,
+          secretAccessKey: credentials.secretAccessKey,
+          sessionToken: credentials.sessionToken
+        }
+      });
+
       // 生成唯一文件名
       const fileExtension = selectedFile.name.split('.').pop();
       const uniqueFileName = `${uuidv4()}.${fileExtension}`;
       const rawKey = `restaurant-logos/raw/${uniqueFileName}`;
       const processedKey = `restaurant-logos/processed/${uuidv4()}.jpg`;
 
-      // 直接上传到S3的raw文件夹
-      const uploadParams = {
-        Bucket: 'emenu-restaurant-assets-dev', // 这里应该从环境变量获取
+      // 上传到S3的raw文件夹
+      const uploadCommand = new PutObjectCommand({
+        Bucket: 'emenu-restaurant-assets-dev',
         Key: rawKey,
         Body: selectedFile,
         ContentType: selectedFile.type,
@@ -90,9 +102,10 @@ const CreateRestaurant = () => {
           'upload-timestamp': new Date().toISOString(),
           'original-name': selectedFile.name
         }
-      };
+      });
 
-      await s3.upload(uploadParams).promise();
+      await s3Client.send(uploadCommand);
+      console.log('Upload successful');
 
       // Lambda会自动处理图片，生成处理后的URL
       const processedUrl = `https://emenu-restaurant-assets-dev.s3.ap-southeast-2.amazonaws.com/${processedKey}`;
@@ -102,7 +115,7 @@ const CreateRestaurant = () => {
       
       // 轮询检查处理是否完成
       setTimeout(() => {
-        checkImageProcessing(processedKey);
+        checkImageProcessing(processedKey, s3Client);
       }, 3000);
       
       alert('Image uploaded successfully! Processing in background...');
@@ -115,7 +128,7 @@ const CreateRestaurant = () => {
     }
   };
 
-  const checkImageProcessing = async (processedKey, attempts = 0) => {
+  const checkImageProcessing = async (processedKey, s3Client, attempts = 0) => {
     if (attempts > 10) {
       setProcessing(false);
       alert('Image processing is taking longer than expected. You can still create the restaurant.');
@@ -123,18 +136,27 @@ const CreateRestaurant = () => {
     }
 
     try {
-      await s3.headObject({
+      const { HeadObjectCommand } = await import('@aws-sdk/client-s3');
+      
+      const headCommand = new HeadObjectCommand({
         Bucket: 'emenu-restaurant-assets-dev',
         Key: processedKey
-      }).promise();
+      });
+      
+      await s3Client.send(headCommand);
       
       // 图片处理完成
       setProcessing(false);
       console.log('Image processing completed');
+      
+      // 更新显示的图片URL
+      const processedUrl = `https://emenu-restaurant-assets-dev.s3.ap-southeast-2.amazonaws.com/${processedKey}`;
+      setUploadedImageUrl(processedUrl);
+      
     } catch (error) {
       // 图片还在处理中，继续等待
       setTimeout(() => {
-        checkImageProcessing(processedKey, attempts + 1);
+        checkImageProcessing(processedKey, s3Client, attempts + 1);
       }, 2000);
     }
   };
