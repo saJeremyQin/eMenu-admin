@@ -70,7 +70,7 @@ const CreateRestaurant = () => {
       const fileExtension = selectedFile.name.split('.').pop();
       const uniqueFileName = `${uuidv4()}.${fileExtension}`;
       const rawKey = `restaurant-logos/raw/${uniqueFileName}`;
-      const processedKey = `restaurant-logos/processed/${uuidv4()}.jpg`;
+      const processedKey = `restaurant-logos/processed/${uniqueFileName.split('.')[0]}.jpg`;
 
       // 使用Amplify Storage API上传到S3
       const result = await uploadData({

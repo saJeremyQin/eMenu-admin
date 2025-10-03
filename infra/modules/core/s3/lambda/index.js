@@ -14,8 +14,8 @@ exports.handler = async (event) => {
     console.log(`Processing file: ${key}`);
 
     try {
-      // 只处理raw文件夹中的图片
-      if (!key.startsWith('restaurant-logos/raw/')) {
+      // 只处理raw文件夹中的图片（支持public前缀）
+      if (!key.startsWith('restaurant-logos/raw/') && !key.startsWith('public/restaurant-logos/raw/')) {
         console.log('Skipping file not in raw folder');
         continue;
       }
@@ -47,10 +47,16 @@ exports.handler = async (event) => {
         })
         .toBuffer();
 
-      // 生成处理后的文件名
+      // 生成处理后的文件名，保持相同的前缀结构
       const fileName = key.split('/').pop();
       const fileNameWithoutExt = fileName.split('.')[0];
-      const processedKey = `restaurant-logos/processed/${fileNameWithoutExt}.jpg`;
+      
+      let processedKey;
+      if (key.startsWith('public/')) {
+        processedKey = `public/restaurant-logos/processed/${fileNameWithoutExt}.jpg`;
+      } else {
+        processedKey = `restaurant-logos/processed/${fileNameWithoutExt}.jpg`;
+      }
 
       // 上传处理后的图片
       const putObjectParams = {

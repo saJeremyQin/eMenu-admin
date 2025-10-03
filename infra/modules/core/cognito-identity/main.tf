@@ -62,7 +62,27 @@ resource "aws_iam_role_policy" "authenticated_s3_policy" {
           "s3:GetObject",
           "s3:DeleteObject"
         ]
-        Resource = "${var.s3_bucket_arn}/restaurant-logos/*"
+        Resource = [
+          "${var.s3_bucket_arn}/public/restaurant-logos/*",
+          "${var.s3_bucket_arn}/protected/restaurant-logos/*",
+          "${var.s3_bucket_arn}/private/restaurant-logos/*"
+        ]
+      },
+      {
+        Effect = "Allow"
+        Action = [
+          "s3:ListBucket"
+        ]
+        Resource = var.s3_bucket_arn
+        Condition = {
+          StringLike = {
+            "s3:prefix" = [
+              "public/restaurant-logos/*",
+              "protected/restaurant-logos/*",
+              "private/restaurant-logos/*"
+            ]
+          }
+        }
       }
     ]
   })
