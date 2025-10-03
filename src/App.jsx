@@ -9,6 +9,7 @@ import LayoutStandard from './components/LayoutStandard/LayoutStandard'; // 原 
 
 import HomePage from './pages/HomePage/HomePage';
 import DishManagerPage from './pages/DishManagerPage/DishManagerPage';
+import CreateRestaurant from './pages/CreateRestaurant/CreateRestaurant';
 
 const AuthLayoutManager = () => {
   const { authStatus } = useAuthenticator(context => [context.authStatus]);
@@ -24,8 +25,8 @@ const AuthLayoutManager = () => {
           <Routes>
             <Route path="/" element={<HomePage />} />
             <Route path="/dishes" element={<DishManagerPage />} />
+            <Route path="/restaurants" element={<CreateRestaurant />} />
             {/* <Route path="/dish-types" element={<DishTypesPage />} /> */}
-            {/* <Route path="/restaurants" element={<RestaurantsPage />} /> */}
             {/* <Route path="/settings" element={<SettingsPage />} /> */}
             {/* 如果用户已登录，再次访问 /auth 应该重定向或显示主页 */}
             <Route path="/auth" element={<HomePage />} />

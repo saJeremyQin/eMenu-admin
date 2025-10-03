@@ -19,6 +19,12 @@ import { signUp } from "aws-amplify/auth";
           defaultAuthMode: 'userPool', // 或 'apiKey' 等
         },
       },
+      Storage: {
+        S3: {
+          bucket: 'emenu-restaurant-assets-dev',
+          region: 'ap-southeast-2',
+        },
+      },
     };
 
     export default awsOutputs;

@@ -34,6 +34,12 @@ module "ecr" {
   aws_region = var.region
 }
 
+module "s3" {
+  source      = "./s3"
+  environment = var.environment
+  region      = var.region
+}
+
 # outputs
 # 暴露 networking 模块的输出作为 core 模块的输出
 output "vpc_id" {
@@ -75,4 +81,20 @@ output "ecr_repository_url" {
 output "ecr_repository_name" {
   description = "The name of the ECR repository created by the core module."
   value       = module.ecr.repository_name
+}
+
+# 暴露 s3 模块的输出作为 core 模块的输出
+output "s3_bucket_name" {
+  description = "The name of the S3 bucket for restaurant assets."
+  value       = module.s3.s3_bucket_name
+}
+
+output "s3_bucket_arn" {
+  description = "The ARN of the S3 bucket for restaurant assets."
+  value       = module.s3.s3_bucket_arn
+}
+
+output "s3_bucket_domain_name" {
+  description = "The domain name of the S3 bucket."
+  value       = module.s3.s3_bucket_domain_name
 }

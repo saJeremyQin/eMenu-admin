@@ -38,6 +38,22 @@ output "ecr_repository_name" {
   value       = module.core_infra.ecr_repository_name
 }
 
+# S3 bucket outputs
+output "s3_bucket_name" {
+  description = "The name of the S3 bucket for restaurant assets."
+  value       = module.core_infra.s3_bucket_name
+}
+
+output "s3_bucket_arn" {
+  description = "The ARN of the S3 bucket for restaurant assets."
+  value       = module.core_infra.s3_bucket_arn
+}
+
+output "s3_bucket_domain_name" {
+  description = "The domain name of the S3 bucket."
+  value       = module.core_infra.s3_bucket_domain_name
+}
+
 # 定义 platform 模块的输出 (如果需要)
 output "ecs_cluster_name" {
   description = "The name of the ECS cluster for dev environment."
@@ -60,6 +76,15 @@ resource "aws_ssm_parameter" "ssm_ecr_registry_url" {
 
   name      = "/${var.repo_name}/${var.env}/ecr_registry_url"
   value     = module.core_infra.ecr_repository_url
+  type      = "String"
+  overwrite = true  
+}
+
+resource "aws_ssm_parameter" "ssm_s3_bucket_name" {
+  description = "S3 Bucket name for restaurant assets in ${var.env} environment"
+
+  name      = "/${var.repo_name}/${var.env}/s3_bucket_name"
+  value     = module.core_infra.s3_bucket_name
   type      = "String"
   overwrite = true  
 }
