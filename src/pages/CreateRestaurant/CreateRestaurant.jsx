@@ -97,8 +97,9 @@ const CreateRestaurant = () => {
       const actualFileName = actualUploadedKey.split('/').pop();
       const actualFileNameWithoutExt = actualFileName.split('.')[0];
       
-      // Lambda函数总是将处理后的文件放在public/路径下，无论原始文件在哪里
-      const processedKey = `public/restaurant-logos/processed/${actualFileNameWithoutExt}.jpg`;
+      // Lambda函数总是将处理后的文件放在public/restaurant-logos/processed/路径下
+      // 但这里我们只需要相对路径，因为会在checkImageProcessing中添加public/前缀
+      const processedKey = `restaurant-logos/processed/${actualFileNameWithoutExt}.jpg`;
 
       console.log('Expected processed key:', processedKey);
       console.log('Actual filename without ext:', actualFileNameWithoutExt);
@@ -129,8 +130,8 @@ const CreateRestaurant = () => {
     }
 
     try {
-      // 直接构建S3的公共URL（processedKey已经包含public/前缀）
-      const publicUrl = `https://emenu-restaurant-assets-dev.s3.ap-southeast-2.amazonaws.com/${processedKey}`;
+      // 手动构建正确的S3公共URL（Lambda总是将处理后的文件放在public/路径下）
+      const publicUrl = `https://emenu-restaurant-assets-dev.s3.ap-southeast-2.amazonaws.com/public/${processedKey}`;
       
       console.log('Checking URL:', publicUrl);
       
