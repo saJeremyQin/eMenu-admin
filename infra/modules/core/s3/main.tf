@@ -129,6 +129,7 @@ resource "aws_lambda_function" "image_processor" {
   runtime         = "nodejs18.x"
   timeout         = 60
   memory_size      = 512
+  source_code_hash = filebase64sha256("${path.module}/image_processor.zip")
 
   environment {
     variables = {

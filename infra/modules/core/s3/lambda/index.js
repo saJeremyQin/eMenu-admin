@@ -1,7 +1,7 @@
-const AWS = require('aws-sdk');
+const { S3Client, GetObjectCommand, PutObjectCommand, HeadObjectCommand } = require('@aws-sdk/client-s3');
 const sharp = require('sharp');
 
-const s3 = new AWS.S3();
+const s3Client = new S3Client({ region: process.env.AWS_REGION });
 const BUCKET_NAME = process.env.S3_BUCKET;
 
 exports.handler = async (event) => {
@@ -33,10 +33,18 @@ exports.handler = async (event) => {
         Key: key
       };
       
-      const originalImage = await s3.getObject(getObjectParams).promise();
+      const getObjectCommand = new GetObjectCommand(getObjectParams);
+      const originalImage = await s3Client.send(getObjectCommand);
+      
+      // 将流转换为Buffer
+      const chunks = [];
+      for await (const chunk of originalImage.Body) {
+        chunks.push(chunk);
+      }
+      const imageBuffer = Buffer.concat(chunks);
       
       // 使用Sharp处理图片
-      const processedImageBuffer = await sharp(originalImage.Body)
+      const processedImageBuffer = await sharp(imageBuffer)
         .resize(300, 300, {
           fit: 'cover',
           position: 'center'
@@ -71,12 +79,14 @@ exports.handler = async (event) => {
         }
       };
 
-      await s3.putObject(putObjectParams).promise();
+      const putObjectCommand = new PutObjectCommand(putObjectParams);
+      await s3Client.send(putObjectCommand);
       console.log(`Successfully processed and saved: ${processedKey}`);
 
-      // 可选：删除原始文件以节省存储空间
-      await s3.deleteObject({ Bucket: bucket, Key: key }).promise();
-      console.log(`Deleted original file: ${key}`);
+      // 注意：暂时不删除原始文件，以便调试
+      // const deleteObjectCommand = new DeleteObjectCommand({ Bucket: bucket, Key: key });
+      // await s3Client.send(deleteObjectCommand);
+      // console.log(`Deleted original file: ${key}`);
 
     } catch (error) {
       console.error(`Error processing ${key}:`, error);
@@ -92,7 +102,8 @@ exports.handler = async (event) => {
 
 async function getContentType(bucket, key) {
   try {
-    const headResult = await s3.headObject({ Bucket: bucket, Key: key }).promise();
+    const headObjectCommand = new HeadObjectCommand({ Bucket: bucket, Key: key });
+    const headResult = await s3Client.send(headObjectCommand);
     return headResult.ContentType;
   } catch (error) {
     console.error(`Error getting content type for ${key}:`, error);
