@@ -61,6 +61,13 @@ resource "aws_s3_bucket_policy" "restaurant_assets_policy" {
         Resource  = "${aws_s3_bucket.restaurant_assets.arn}/public/*"
       },
       {
+        Sid       = "PublicReadProcessedImages"
+        Effect    = "Allow"
+        Principal = "*"
+        Action    = "s3:GetObject"
+        Resource  = "${aws_s3_bucket.restaurant_assets.arn}/public/restaurant-logos/processed/*"
+      },
+      {
         Sid    = "AuthenticatedUserUpload"
         Effect = "Allow"
         Principal = "*"

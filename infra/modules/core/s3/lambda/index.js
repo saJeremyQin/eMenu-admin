@@ -55,16 +55,12 @@ export const handler = async (event) => {
         })
         .toBuffer();
 
-      // 生成处理后的文件名，保持相同的前缀结构
+      // 生成处理后的文件名，确保总是在public/路径下
       const fileName = key.split('/').pop();
       const fileNameWithoutExt = fileName.split('.')[0];
       
-      let processedKey;
-      if (key.startsWith('public/')) {
-        processedKey = `public/restaurant-logos/processed/${fileNameWithoutExt}.jpg`;
-      } else {
-        processedKey = `restaurant-logos/processed/${fileNameWithoutExt}.jpg`;
-      }
+      // 无论原始文件在哪个路径，处理后的文件都放在public/路径下
+      const processedKey = `public/restaurant-logos/processed/${fileNameWithoutExt}.jpg`;
 
       // 上传处理后的图片
       const putObjectParams = {

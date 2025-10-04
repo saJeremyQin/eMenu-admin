@@ -97,18 +97,10 @@ const CreateRestaurant = () => {
       const actualFileName = actualUploadedKey.split('/').pop();
       const actualFileNameWithoutExt = actualFileName.split('.')[0];
       
-      // 根据实际上传路径构建处理后的路径
-      let processedKey;
-      if (isPublicPath) {
-        // 如果上传到了public/restaurant-logos/raw/，处理后应该在public/restaurant-logos/processed/
-        processedKey = `public/restaurant-logos/processed/${actualFileNameWithoutExt}.jpg`;
-      } else {
-        // 如果上传到了restaurant-logos/raw/，处理后应该在restaurant-logos/processed/
-        processedKey = `restaurant-logos/processed/${actualFileNameWithoutExt}.jpg`;
-      }
+      // Lambda函数总是将处理后的文件放在public/路径下，无论原始文件在哪里
+      const processedKey = `public/restaurant-logos/processed/${actualFileNameWithoutExt}.jpg`;
 
       console.log('Expected processed key:', processedKey);
-      console.log('Is public path:', isPublicPath);
       console.log('Actual filename without ext:', actualFileNameWithoutExt);
 
       // 设置处理状态
@@ -137,8 +129,10 @@ const CreateRestaurant = () => {
     }
 
     try {
-      // 直接构建S3的公共URL（因为我们已经设置了公共读取权限）
+      // 直接构建S3的公共URL（processedKey已经包含public/前缀）
       const publicUrl = `https://emenu-restaurant-assets-dev.s3.ap-southeast-2.amazonaws.com/${processedKey}`;
+      
+      console.log('Checking URL:', publicUrl);
       
       // 检查URL是否可访问
       const response = await fetch(publicUrl, { method: 'HEAD' });
