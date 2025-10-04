@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { uploadData, getUrl } from 'aws-amplify/storage';
+import { uploadData } from 'aws-amplify/storage';
 import { v4 as uuidv4 } from 'uuid';
 import { generateClient } from 'aws-amplify/api';
 import { getCurrentUser } from 'aws-amplify/auth';
@@ -137,23 +137,22 @@ const CreateRestaurant = () => {
     }
 
     try {
-      // 尝试获取处理后的图片URL
-      const urlResult = await getUrl({
-        key: processedKey
-      });
+      // 直接构建S3的公共URL（因为我们已经设置了公共读取权限）
+      const publicUrl = `https://emenu-restaurant-assets-dev.s3.ap-southeast-2.amazonaws.com/${processedKey}`;
       
       // 检查URL是否可访问
-      const response = await fetch(urlResult.url, { method: 'HEAD' });
+      const response = await fetch(publicUrl, { method: 'HEAD' });
       if (response.ok) {
         // 图片处理完成
         setProcessing(false);
         console.log('Image processing completed');
-        setUploadedImageUrl(urlResult.url.toString());
+        setUploadedImageUrl(publicUrl);
       } else {
         throw new Error('Image not ready');
       }
     } catch (error) {
       // 图片还在处理中，继续等待
+      console.log(`Attempt ${attempts + 1}: Image not ready yet, retrying in 2 seconds...`);
       setTimeout(() => {
         checkImageProcessing(processedKey, attempts + 1);
       }, 2000);
