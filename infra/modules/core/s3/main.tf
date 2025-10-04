@@ -150,6 +150,14 @@ resource "aws_lambda_permission" "allow_s3_invoke" {
 resource "aws_s3_bucket_notification" "image_upload_notification" {
   bucket = aws_s3_bucket.restaurant_assets.id
 
+  # Handle public path uploads (Amplify default)
+  lambda_function {
+    lambda_function_arn = aws_lambda_function.image_processor.arn
+    events              = ["s3:ObjectCreated:*"]
+    filter_prefix       = "public/restaurant-logos/raw/"
+  }
+
+  # Handle direct path uploads (fallback)
   lambda_function {
     lambda_function_arn = aws_lambda_function.image_processor.arn
     events              = ["s3:ObjectCreated:*"]

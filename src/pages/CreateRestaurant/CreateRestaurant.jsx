@@ -70,7 +70,8 @@ const CreateRestaurant = () => {
       const fileExtension = selectedFile.name.split('.').pop();
       const uniqueFileName = `${uuidv4()}.${fileExtension}`;
       const rawKey = `restaurant-logos/raw/${uniqueFileName}`;
-      const processedKey = `restaurant-logos/processed/${uniqueFileName.split('.')[0]}.jpg`;
+
+      console.log('Uploading to key:', rawKey);
 
       // 使用Amplify Storage API上传到S3
       const result = await uploadData({
@@ -86,6 +87,23 @@ const CreateRestaurant = () => {
       }).result;
 
       console.log('Upload successful:', result);
+      console.log('Actual uploaded key:', result.key);
+
+      // 确定实际的上传路径（Amplify可能会添加public/前缀）
+      const actualUploadedKey = result.key;
+      const isPublicPath = actualUploadedKey.startsWith('public/');
+      
+      // 根据实际上传路径构建处理后的路径
+      let processedKey;
+      if (isPublicPath) {
+        // 如果上传到了public/restaurant-logos/raw/，处理后应该在public/restaurant-logos/processed/
+        processedKey = `public/restaurant-logos/processed/${uniqueFileName.split('.')[0]}.jpg`;
+      } else {
+        // 如果上传到了restaurant-logos/raw/，处理后应该在restaurant-logos/processed/
+        processedKey = `restaurant-logos/processed/${uniqueFileName.split('.')[0]}.jpg`;
+      }
+
+      console.log('Expected processed key:', processedKey);
 
       // Lambda会自动处理图片，生成处理后的URL
       const processedUrl = `https://emenu-restaurant-assets-dev.s3.ap-southeast-2.amazonaws.com/${processedKey}`;
