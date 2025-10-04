@@ -93,17 +93,23 @@ const CreateRestaurant = () => {
       const actualUploadedKey = result.key;
       const isPublicPath = actualUploadedKey.startsWith('public/');
       
+      // 从实际上传的路径中提取文件名（不含扩展名）
+      const actualFileName = actualUploadedKey.split('/').pop();
+      const actualFileNameWithoutExt = actualFileName.split('.')[0];
+      
       // 根据实际上传路径构建处理后的路径
       let processedKey;
       if (isPublicPath) {
         // 如果上传到了public/restaurant-logos/raw/，处理后应该在public/restaurant-logos/processed/
-        processedKey = `public/restaurant-logos/processed/${uniqueFileName.split('.')[0]}.jpg`;
+        processedKey = `public/restaurant-logos/processed/${actualFileNameWithoutExt}.jpg`;
       } else {
         // 如果上传到了restaurant-logos/raw/，处理后应该在restaurant-logos/processed/
-        processedKey = `restaurant-logos/processed/${uniqueFileName.split('.')[0]}.jpg`;
+        processedKey = `restaurant-logos/processed/${actualFileNameWithoutExt}.jpg`;
       }
 
       console.log('Expected processed key:', processedKey);
+      console.log('Is public path:', isPublicPath);
+      console.log('Actual filename without ext:', actualFileNameWithoutExt);
 
       // 设置处理状态
       setProcessing(true);
