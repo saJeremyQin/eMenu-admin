@@ -105,10 +105,7 @@ const CreateRestaurant = () => {
 
       console.log('Expected processed key:', processedKey);
 
-      // Lambda会自动处理图片，生成处理后的URL
-      const processedUrl = `https://emenu-restaurant-assets-dev.s3.ap-southeast-2.amazonaws.com/${processedKey}`;
-      
-      setUploadedImageUrl(processedUrl);
+      // 设置处理状态
       setProcessing(true);
       
       // 轮询检查处理是否完成

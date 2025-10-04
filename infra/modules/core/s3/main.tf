@@ -58,7 +58,7 @@ resource "aws_s3_bucket_policy" "restaurant_assets_policy" {
         Effect    = "Allow"
         Principal = "*"
         Action    = "s3:GetObject"
-        Resource  = "${aws_s3_bucket.restaurant_assets.arn}/*"
+        Resource  = "${aws_s3_bucket.restaurant_assets.arn}/public/*"
       },
       {
         Sid    = "AuthenticatedUserUpload"
@@ -68,7 +68,7 @@ resource "aws_s3_bucket_policy" "restaurant_assets_policy" {
           "s3:PutObject",
           "s3:PutObjectAcl"
         ]
-        Resource = "${aws_s3_bucket.restaurant_assets.arn}/restaurant-logos/*"
+        Resource = "${aws_s3_bucket.restaurant_assets.arn}/public/restaurant-logos/*"
       }
     ]
   })
