@@ -126,7 +126,7 @@ resource "aws_lambda_function" "image_processor" {
   function_name    = "restaurant-image-processor-${var.environment}"
   role            = aws_iam_role.image_processor_role.arn
   handler         = "index.handler"
-  runtime         = "nodejs18.x"
+  runtime         = "nodejs20.x"
   timeout         = 60
   memory_size      = 512
   source_code_hash = filebase64sha256("${path.module}/image_processor.zip")

@@ -1,10 +1,10 @@
-const { S3Client, GetObjectCommand, PutObjectCommand, HeadObjectCommand } = require('@aws-sdk/client-s3');
-const sharp = require('sharp');
+import { S3Client, GetObjectCommand, PutObjectCommand, HeadObjectCommand } from '@aws-sdk/client-s3';
+import sharp from 'sharp';
 
 const s3Client = new S3Client({ region: process.env.AWS_REGION });
 const BUCKET_NAME = process.env.S3_BUCKET;
 
-exports.handler = async (event) => {
+export const handler = async (event) => {
   console.log('Received event:', JSON.stringify(event, null, 2));
 
   for (const record of event.Records) {
