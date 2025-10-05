@@ -10,7 +10,7 @@ import { signUp } from "aws-amplify/auth";
           region: 'ap-southeast-2',
           signUpAttributes: ['EMAIL'],
           verificationMechanisms: ['EMAIL'],
-          identityPoolId: 'ap-southeast-2:4c8a9402-1c14-4d78-82ae-37cd3b68d255',
+          identityPoolId: 'ap-southeast-2:f7b49d7b-d653-4a5f-9dd6-07bd42e4d763',
         },
       },
       API: {
