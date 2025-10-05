@@ -14,11 +14,16 @@ export const handler = async (event) => {
     console.log(`Processing file: ${key}`);
 
     try {
-      // 只处理raw文件夹中的图片（支持public前缀）
-      if (!key.startsWith('restaurant-logos/raw/') && !key.startsWith('public/restaurant-logos/raw/')) {
-        console.log('Skipping file not in raw folder');
+      // 检查是否是餐厅logo原始文件 - 基于cognitoId的路径结构
+      const restaurantLogoMatch = key.match(/^public\/restaurant-logos\/([^\/]+)\/raw\/(.+)$/);
+      
+      if (!restaurantLogoMatch) {
+        console.log('File path does not match restaurant logo pattern, skipping');
         continue;
       }
+
+      const [, cognitoId, filename] = restaurantLogoMatch;
+      console.log(`Processing restaurant logo for user: ${cognitoId}, file: ${filename}`);
 
       // 检查文件类型
       const contentType = await getContentType(bucket, key);
@@ -43,7 +48,7 @@ export const handler = async (event) => {
       }
       const imageBuffer = Buffer.concat(chunks);
       
-      // 使用Sharp处理图片
+      // 使用Sharp处理图片 - 餐厅logo标准化为300x300
       const processedImageBuffer = await sharp(imageBuffer)
         .resize(300, 300, {
           fit: 'cover',
@@ -55,12 +60,9 @@ export const handler = async (event) => {
         })
         .toBuffer();
 
-      // 生成处理后的文件名，确保总是在public/路径下
-      const fileName = key.split('/').pop();
-      const fileNameWithoutExt = fileName.split('.')[0];
-      
-      // 无论原始文件在哪个路径，处理后的文件都放在public/路径下
-      const processedKey = `public/restaurant-logos/processed/${fileNameWithoutExt}.jpg`;
+      // 生成处理后的文件名，保存到同一个cognitoId下的processed目录
+      const fileNameWithoutExt = filename.split('.')[0];
+      const processedKey = `public/restaurant-logos/${cognitoId}/processed/${fileNameWithoutExt}.jpg`;
 
       // 上传处理后的图片
       const putObjectParams = {
@@ -71,18 +73,14 @@ export const handler = async (event) => {
         CacheControl: 'max-age=31536000', // 1年缓存
         Metadata: {
           'original-key': key,
-          'processed-at': new Date().toISOString()
+          'processed-at': new Date().toISOString(),
+          'cognito-id': cognitoId
         }
       };
 
       const putObjectCommand = new PutObjectCommand(putObjectParams);
       await s3Client.send(putObjectCommand);
       console.log(`Successfully processed and saved: ${processedKey}`);
-
-      // 注意：暂时不删除原始文件，以便调试
-      // const deleteObjectCommand = new DeleteObjectCommand({ Bucket: bucket, Key: key });
-      // await s3Client.send(deleteObjectCommand);
-      // console.log(`Deleted original file: ${key}`);
 
     } catch (error) {
       console.error(`Error processing ${key}:`, error);

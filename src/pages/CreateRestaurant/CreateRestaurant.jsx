@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { uploadData } from 'aws-amplify/storage';
 import { v4 as uuidv4 } from 'uuid';
 import { generateClient } from 'aws-amplify/api';
-import { getCurrentUser } from 'aws-amplify/auth';
+import { getCurrentUser, fetchAuthSession } from 'aws-amplify/auth';
 import styles from './CreateRestaurant.module.scss';
 
 const client = generateClient();
@@ -66,10 +66,21 @@ const CreateRestaurant = () => {
     setProcessing(false);
     
     try {
+      // 获取用户的 cognito 身份信息
+      const session = await fetchAuthSession();
+      const cognitoId = session.identityId;
+      
+      if (!cognitoId) {
+        throw new Error('Unable to get user identity');
+      }
+
+      console.log('User cognito ID:', cognitoId);
+
       // 生成唯一文件名
       const fileExtension = selectedFile.name.split('.').pop();
       const uniqueFileName = `${uuidv4()}.${fileExtension}`;
-      const rawKey = `restaurant-logos/raw/${uniqueFileName}`;
+      // 使用基于 cognitoId 的路径结构
+      const rawKey = `public/restaurant-logos/${cognitoId}/raw/${uniqueFileName}`;
 
       console.log('Uploading to key:', rawKey);
 
@@ -81,7 +92,8 @@ const CreateRestaurant = () => {
           contentType: selectedFile.type,
           metadata: {
             'upload-timestamp': new Date().toISOString(),
-            'original-name': selectedFile.name
+            'original-name': selectedFile.name,
+            'cognito-id': cognitoId
           }
         }
       }).result;
@@ -89,17 +101,15 @@ const CreateRestaurant = () => {
       console.log('Upload successful:', result);
       console.log('Actual uploaded key:', result.key);
 
-      // 确定实际的上传路径（Amplify可能会添加public/前缀）
+      // 确定实际的上传路径（Amplify可能会添加public/前缀或修改路径）
       const actualUploadedKey = result.key;
-      const isPublicPath = actualUploadedKey.startsWith('public/');
       
       // 从实际上传的路径中提取文件名（不含扩展名）
       const actualFileName = actualUploadedKey.split('/').pop();
       const actualFileNameWithoutExt = actualFileName.split('.')[0];
       
-      // Lambda函数总是将处理后的文件放在public/restaurant-logos/processed/路径下
-      // 但这里我们只需要相对路径，因为会在checkImageProcessing中添加public/前缀
-      const processedKey = `restaurant-logos/processed/${actualFileNameWithoutExt}.jpg`;
+      // Lambda函数将处理后的文件放在对应用户的processed目录下
+      const processedKey = `public/restaurant-logos/${cognitoId}/processed/${actualFileNameWithoutExt}.jpg`;
 
       console.log('Expected processed key:', processedKey);
       console.log('Actual filename without ext:', actualFileNameWithoutExt);
@@ -130,8 +140,8 @@ const CreateRestaurant = () => {
     }
 
     try {
-      // 手动构建正确的S3公共URL（Lambda总是将处理后的文件放在public/路径下）
-      const publicUrl = `https://emenu-restaurant-assets-dev.s3.ap-southeast-2.amazonaws.com/public/${processedKey}`;
+      // 直接使用 processedKey 构建 S3 公共 URL（因为已经包含完整路径）
+      const publicUrl = `https://emenu-restaurant-assets-dev.s3.ap-southeast-2.amazonaws.com/${processedKey}`;
       
       console.log('Checking URL:', publicUrl);
       
