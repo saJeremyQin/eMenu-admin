@@ -141,7 +141,7 @@ const CreateRestaurant = () => {
 
     try {
       // 直接使用 processedKey 构建 S3 公共 URL（因为已经包含完整路径）
-      const publicUrl = `https://emenu-restaurant-assets-dev.s3.ap-southeast-2.amazonaws.com/${processedKey}`;
+      const publicUrl = `https://emenu-restaurant-assets-dev.s3.ap-southeast-2.amazonaws.com/public/${processedKey}`;
       
       console.log('Checking URL:', publicUrl);
       
