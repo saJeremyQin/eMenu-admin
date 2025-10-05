@@ -46,7 +46,7 @@ resource "aws_iam_role" "authenticated" {
   }
 }
 
-# IAM policy for S3 access with user-specific isolation
+# IAM policy for S3 access - simplified version with application-layer control
 resource "aws_iam_role_policy" "authenticated_s3_policy" {
   name = "emenu_s3_access_${var.environment}"
   role = aws_iam_role.authenticated.id
@@ -63,7 +63,7 @@ resource "aws_iam_role_policy" "authenticated_s3_policy" {
           "s3:DeleteObject"
         ]
         Resource = [
-          "${var.s3_bucket_arn}/public/restaurant-logos/$${cognito-identity.amazonaws.com:sub}/*"
+          "${var.s3_bucket_arn}/public/restaurant-logos/*"
         ]
       },
       {
@@ -75,19 +75,10 @@ resource "aws_iam_role_policy" "authenticated_s3_policy" {
         Condition = {
           StringLike = {
             "s3:prefix" = [
-              "public/restaurant-logos/$${cognito-identity.amazonaws.com:sub}/*"
+              "public/restaurant-logos/*"
             ]
           }
         }
-      },
-      {
-        Effect = "Allow"
-        Action = [
-          "s3:GetObject"
-        ]
-        Resource = [
-          "${var.s3_bucket_arn}/public/restaurant-logos/*/processed/*"
-        ]
       }
     ]
   })

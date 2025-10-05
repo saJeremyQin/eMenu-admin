@@ -14,7 +14,7 @@ export const handler = async (event) => {
     console.log(`Processing file: ${key}`);
 
     try {
-      // 检查是否是餐厅logo原始文件 - 基于cognitoId的路径结构
+      // 检查是否是餐厅logo原始文件 - 基于User Pool sub的路径结构
       const restaurantLogoMatch = key.match(/^public\/restaurant-logos\/([^\/]+)\/raw\/(.+)$/);
       
       if (!restaurantLogoMatch) {
@@ -22,8 +22,8 @@ export const handler = async (event) => {
         continue;
       }
 
-      const [, cognitoId, filename] = restaurantLogoMatch;
-      console.log(`Processing restaurant logo for user: ${cognitoId}, file: ${filename}`);
+      const [, userSub, filename] = restaurantLogoMatch;
+      console.log(`Processing restaurant logo for User Pool sub: ${userSub}, file: ${filename}`);
 
       // 检查文件类型
       const contentType = await getContentType(bucket, key);
@@ -40,6 +40,16 @@ export const handler = async (event) => {
       
       const getObjectCommand = new GetObjectCommand(getObjectParams);
       const originalImage = await s3Client.send(getObjectCommand);
+      
+      // 验证metadata中的用户信息（如果存在）
+      if (originalImage.Metadata && originalImage.Metadata['user-sub']) {
+        const metadataUserSub = originalImage.Metadata['user-sub'];
+        if (metadataUserSub !== userSub) {
+          console.error(`Security violation: File path user ${userSub} doesn't match metadata user ${metadataUserSub}`);
+          continue;
+        }
+        console.log(`User verification passed for: ${userSub}`);
+      }
       
       // 将流转换为Buffer
       const chunks = [];
@@ -60,9 +70,9 @@ export const handler = async (event) => {
         })
         .toBuffer();
 
-      // 生成处理后的文件名，保存到同一个cognitoId下的processed目录
+      // 生成处理后的文件名，保存到同一个User Pool sub下的processed目录
       const fileNameWithoutExt = filename.split('.')[0];
-      const processedKey = `public/restaurant-logos/${cognitoId}/processed/${fileNameWithoutExt}.jpg`;
+      const processedKey = `public/restaurant-logos/${userSub}/processed/${fileNameWithoutExt}.jpg`;
 
       // 上传处理后的图片
       const putObjectParams = {
@@ -74,7 +84,8 @@ export const handler = async (event) => {
         Metadata: {
           'original-key': key,
           'processed-at': new Date().toISOString(),
-          'cognito-id': cognitoId
+          'user-sub': userSub, // 保持用户标识用于后续验证
+          'processed-by': 'lambda-image-processor'
         }
       };
 

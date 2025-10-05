@@ -66,25 +66,22 @@ const CreateRestaurant = () => {
     setProcessing(false);
     
     try {
-      // 获取用户的 cognito 身份信息
-      const session = await fetchAuthSession();
-      const cognitoId = session.identityId;
+      // 获取当前用户的持久化ID (User Pool sub)
+      const currentUser = await getCurrentUser();
+      const userSub = currentUser.userId; // 这是持久化的User Pool sub
       
-      if (!cognitoId) {
-        throw new Error('Unable to get user identity');
-      }
-
-      console.log('User cognito ID:', cognitoId);
+      console.log('User Pool sub (persistent ID):', userSub);
 
       // 生成唯一文件名
       const fileExtension = selectedFile.name.split('.').pop();
       const uniqueFileName = `${uuidv4()}.${fileExtension}`;
-      // 使用基于 cognitoId 的路径结构
-      const rawKey = `public/restaurant-logos/${cognitoId}/raw/${uniqueFileName}`;
+      
+      // 使用User Pool sub构建路径 - 不添加public前缀，让Amplify自动处理
+      const rawKey = `restaurant-logos/${userSub}/raw/${uniqueFileName}`;
 
       console.log('Uploading to key:', rawKey);
 
-      // 使用Amplify Storage API上传到S3
+      // 上传文件，并在metadata中包含用户验证信息
       const result = await uploadData({
         key: rawKey,
         data: selectedFile,
@@ -93,7 +90,8 @@ const CreateRestaurant = () => {
           metadata: {
             'upload-timestamp': new Date().toISOString(),
             'original-name': selectedFile.name,
-            'cognito-id': cognitoId
+            'user-sub': userSub, // 重要：在metadata中保存用户sub用于验证
+            'uploaded-by': currentUser.username || 'unknown'
           }
         }
       }).result;
@@ -101,18 +99,20 @@ const CreateRestaurant = () => {
       console.log('Upload successful:', result);
       console.log('Actual uploaded key:', result.key);
 
-      // 确定实际的上传路径（Amplify可能会添加public/前缀或修改路径）
+      // 构建期望的处理后文件路径
       const actualUploadedKey = result.key;
-      
-      // 从实际上传的路径中提取文件名（不含扩展名）
       const actualFileName = actualUploadedKey.split('/').pop();
       const actualFileNameWithoutExt = actualFileName.split('.')[0];
       
-      // Lambda函数将处理后的文件放在对应用户的processed目录下
-      const processedKey = `public/restaurant-logos/${cognitoId}/processed/${actualFileNameWithoutExt}.jpg`;
+      // 根据实际上传路径构建处理后的路径
+      let processedKey;
+      if (actualUploadedKey.startsWith('public/')) {
+        processedKey = `public/restaurant-logos/${userSub}/processed/${actualFileNameWithoutExt}.jpg`;
+      } else {
+        processedKey = `restaurant-logos/${userSub}/processed/${actualFileNameWithoutExt}.jpg`;
+      }
 
       console.log('Expected processed key:', processedKey);
-      console.log('Actual filename without ext:', actualFileNameWithoutExt);
 
       // 设置处理状态
       setProcessing(true);
