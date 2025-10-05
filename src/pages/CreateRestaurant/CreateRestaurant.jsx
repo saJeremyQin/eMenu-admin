@@ -66,64 +66,66 @@ const CreateRestaurant = () => {
     setProcessing(false);
     
     try {
-      // 获取当前用户的持久化ID (User Pool sub)
+      // 获取当前用户和认证 token
       const currentUser = await getCurrentUser();
-      const userSub = currentUser.userId; // 这是持久化的User Pool sub
+      const session = await fetchAuthSession();
+      const token = session.tokens?.idToken?.toString();
       
-      console.log('User Pool sub (persistent ID):', userSub);
-
-      // 生成唯一文件名
-      const fileExtension = selectedFile.name.split('.').pop();
-      const uniqueFileName = `${uuidv4()}.${fileExtension}`;
-      
-      // 使用User Pool sub构建路径 - 不添加public前缀，让Amplify自动处理
-      const rawKey = `restaurant-logos/${userSub}/raw/${uniqueFileName}`;
-
-      console.log('Uploading to key:', rawKey);
-
-      // 上传文件，并在metadata中包含用户验证信息
-      const result = await uploadData({
-        key: rawKey,
-        data: selectedFile,
-        options: {
-          contentType: selectedFile.type,
-          metadata: {
-            'upload-timestamp': new Date().toISOString(),
-            'original-name': selectedFile.name,
-            'user-sub': userSub, // 重要：在metadata中保存用户sub用于验证
-            'uploaded-by': currentUser.username || 'unknown'
-          }
-        }
-      }).result;
-
-      console.log('Upload successful:', result);
-      console.log('Actual uploaded key:', result.key);
-
-      // 构建期望的处理后文件路径
-      const actualUploadedKey = result.key;
-      const actualFileName = actualUploadedKey.split('/').pop();
-      const actualFileNameWithoutExt = actualFileName.split('.')[0];
-      
-      // 根据实际上传路径构建处理后的路径
-      let processedKey;
-      if (actualUploadedKey.startsWith('public/')) {
-        processedKey = `public/restaurant-logos/${userSub}/processed/${actualFileNameWithoutExt}.jpg`;
-      } else {
-        processedKey = `restaurant-logos/${userSub}/processed/${actualFileNameWithoutExt}.jpg`;
+      if (!token) {
+        throw new Error('Unable to get authentication token');
       }
 
-      console.log('Expected processed key:', processedKey);
+      console.log('User Pool sub (persistent ID):', currentUser.userId);
 
+      // 调用我们的预签名 URL Lambda 函数
+      const lambdaUrl = 'https://quzdseyzfejtzxbecmnxvou4hq0yvmus.lambda-url.ap-southeast-2.on.aws/';
+      
+      const response = await fetch(lambdaUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          authToken: token,
+          fileName: selectedFile.name,
+          contentType: selectedFile.type
+        })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to get presigned URL');
+      }
+
+      const { presignedUrl, s3Key, expectedProcessedKey } = await response.json();
+      
+      console.log('Got presigned URL for key:', s3Key);
+
+      // 使用预签名 URL 直接上传到 S3
+      const uploadResponse = await fetch(presignedUrl, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': selectedFile.type,
+        },
+        body: selectedFile
+      });
+
+      if (!uploadResponse.ok) {
+        throw new Error('Failed to upload file to S3');
+      }
+
+      console.log('Upload successful to key:', s3Key);
+      
       // 设置处理状态
       setProcessing(true);
       
-      // 轮询检查处理是否完成
+      // 等待 Lambda 处理图片
       setTimeout(() => {
-        checkImageProcessing(processedKey);
+        checkImageProcessing(expectedProcessedKey);
       }, 3000);
       
       alert('Image uploaded successfully! Processing in background...');
-      
+
     } catch (error) {
       console.error('Upload error:', error);
       alert('Failed to upload image. Please try again.');
@@ -140,8 +142,8 @@ const CreateRestaurant = () => {
     }
 
     try {
-      // 直接使用 processedKey 构建 S3 公共 URL（因为已经包含完整路径）
-      const publicUrl = `https://emenu-restaurant-assets-dev.s3.ap-southeast-2.amazonaws.com/public/${processedKey}`;
+      // processedKey 已经包含完整路径，直接构建 S3 公共 URL
+      const publicUrl = `https://emenu-restaurant-assets-dev.s3.ap-southeast-2.amazonaws.com/${processedKey}`;
       
       console.log('Checking URL:', publicUrl);
       

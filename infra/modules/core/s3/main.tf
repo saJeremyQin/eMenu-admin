@@ -147,6 +147,95 @@ resource "aws_lambda_function" "image_processor" {
   depends_on = [aws_iam_role_policy.image_processor_policy]
 }
 
+# Presigned URL Generator Lambda Function
+resource "aws_lambda_function" "presigned_url_generator" {
+  filename         = "${path.module}/lambda/presigned-url-generator.zip"
+  function_name    = "presigned-url-generator-${var.environment}"
+  role            = aws_iam_role.presigned_url_role.arn
+  handler         = "presigned-url-generator.handler"
+  runtime         = "nodejs18.x"
+  timeout         = 30
+
+  source_code_hash = data.archive_file.presigned_url_lambda_zip.output_base64sha256
+
+  environment {
+    variables = {
+      S3_BUCKET = aws_s3_bucket.restaurant_assets.bucket
+    }
+  }
+
+  depends_on = [aws_iam_role_policy.presigned_url_policy]
+}
+
+# Lambda Function URL for presigned URL generator
+resource "aws_lambda_function_url" "presigned_url_generator" {
+  function_name      = aws_lambda_function.presigned_url_generator.function_name
+  authorization_type = "NONE"
+
+  cors {
+    allow_credentials = false
+    allow_origins     = ["*"]
+    allow_methods     = ["POST"]
+    allow_headers     = ["date", "keep-alive", "content-type", "authorization"]
+    expose_headers    = ["date", "keep-alive"]
+    max_age          = 86400
+  }
+}
+
+# IAM role for presigned URL generator
+resource "aws_iam_role" "presigned_url_role" {
+  name = "presigned-url-role-${var.environment}"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = "sts:AssumeRole"
+        Effect = "Allow"
+        Principal = {
+          Service = "lambda.amazonaws.com"
+        }
+      }
+    ]
+  })
+}
+
+resource "aws_iam_role_policy" "presigned_url_policy" {
+  name = "presigned-url-policy-${var.environment}"
+  role = aws_iam_role.presigned_url_role.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "logs:CreateLogGroup",
+          "logs:CreateLogStream",
+          "logs:PutLogEvents"
+        ]
+        Resource = "arn:aws:logs:*:*:*"
+      },
+      {
+        Effect = "Allow"
+        Action = [
+          "s3:PutObject",
+          "s3:PutObjectAcl"
+        ]
+        Resource = "${aws_s3_bucket.restaurant_assets.arn}/public/restaurant-logos/*"
+      }
+    ]
+  })
+}
+
+# Create Lambda deployment package for presigned URL generator
+data "archive_file" "presigned_url_lambda_zip" {
+  type        = "zip"
+  source_dir  = "${path.module}/lambda"
+  output_path = "${path.module}/lambda/presigned-url-generator.zip"
+  excludes    = ["index.js", "image-processor.zip"]
+}
+
 resource "aws_lambda_permission" "allow_s3_invoke" {
   statement_id  = "AllowExecutionFromS3Bucket"
   action        = "lambda:InvokeFunction"
@@ -158,18 +247,26 @@ resource "aws_lambda_permission" "allow_s3_invoke" {
 resource "aws_s3_bucket_notification" "image_upload_notification" {
   bucket = aws_s3_bucket.restaurant_assets.id
 
-  # Handle public path uploads (Amplify default)
+  # Handle uploads from presigned URL (now uses User Pool sub in path)
   lambda_function {
     lambda_function_arn = aws_lambda_function.image_processor.arn
     events              = ["s3:ObjectCreated:*"]
-    filter_prefix       = "public/restaurant-logos/raw/"
+    filter_prefix       = "public/restaurant-logos/"
+    filter_suffix       = ".jpeg"
   }
-
-  # Handle direct path uploads (fallback)
+  
   lambda_function {
     lambda_function_arn = aws_lambda_function.image_processor.arn
     events              = ["s3:ObjectCreated:*"]
-    filter_prefix       = "restaurant-logos/raw/"
+    filter_prefix       = "public/restaurant-logos/"
+    filter_suffix       = ".jpg"
+  }
+  
+  lambda_function {
+    lambda_function_arn = aws_lambda_function.image_processor.arn
+    events              = ["s3:ObjectCreated:*"]
+    filter_prefix       = "public/restaurant-logos/"
+    filter_suffix       = ".png"
   }
 
   depends_on = [aws_lambda_permission.allow_s3_invoke]
