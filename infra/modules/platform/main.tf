@@ -61,6 +61,11 @@ variable "restaurant_assets_bucket" {
   type        = string
 }
 
+variable "cognito_identity_pool_id" {
+  description = "Cognito Identity Pool ID"
+  type        = string
+}
+
 
 module "ecs" {
   source          = "./ecs"
@@ -81,6 +86,7 @@ module "ecs" {
   # Backend configuration from remote state
   presigned_url_generator = var.presigned_url_generator_url
   s3_bucket_name         = var.restaurant_assets_bucket
+  cognito_identity_pool_id = var.cognito_identity_pool_id
 
   env = var.environment
 }

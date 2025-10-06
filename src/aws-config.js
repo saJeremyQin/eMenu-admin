@@ -10,7 +10,8 @@ import { signUp } from "aws-amplify/auth";
           region: 'ap-southeast-2',
           signUpAttributes: ['EMAIL'],
           verificationMechanisms: ['EMAIL'],
-          identityPoolId: 'ap-southeast-2:f7b49d7b-d653-4a5f-9dd6-07bd42e4d763',
+          identityPoolId: import.meta.env.VITE_COGNITO_IDENTITY_POOL_ID || 
+            'ap-southeast-2:0bd2c82e-0ca9-4ca0-b2d8-2526e18bc364', // 从 Terraform 获取的新 ID
         },
       },
       API: {

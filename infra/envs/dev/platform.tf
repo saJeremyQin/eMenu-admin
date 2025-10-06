@@ -20,4 +20,5 @@ module "platform_infra" {
   # Backend configuration from remote state (via core module)
   presigned_url_generator_url = module.core_infra.backend_presigned_url_generator
   restaurant_assets_bucket   = module.core_infra.backend_s3_bucket_name
+  cognito_identity_pool_id   = module.core_infra.cognito_identity_pool_id
 }
