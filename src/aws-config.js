@@ -20,12 +20,7 @@ import { signUp } from "aws-amplify/auth";
           defaultAuthMode: 'userPool', // 或 'apiKey' 等
         },
       },
-      Storage: {
-        S3: {
-          bucket: 'emenu-restaurant-assets-dev',
-          region: 'ap-southeast-2',
-        },
-      },
+      // Storage 配置已移除，因为文件上传现在通过 eMenu-backend 的 Lambda 函数处理
     };
 
     export default awsOutputs;

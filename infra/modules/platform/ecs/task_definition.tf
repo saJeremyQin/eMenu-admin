@@ -17,6 +17,16 @@ resource "aws_ecs_task_definition" "this" {
           containerPort = var.container_port
         }
       ],
+      environment = [
+        {
+          name  = "VITE_PRESIGNED_URL_GENERATOR"
+          value = var.presigned_url_generator
+        },
+        {
+          name  = "VITE_S3_BUCKET_NAME"
+          value = var.s3_bucket_name
+        }
+      ],
       logConfiguration = {
         logDriver = "awslogs",
         options = {

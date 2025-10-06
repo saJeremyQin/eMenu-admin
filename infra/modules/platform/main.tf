@@ -51,6 +51,16 @@ variable "repo_name" {
   
 }
 
+variable "presigned_url_generator_url" {
+  description = "Presigned URL Generator Lambda URL from eMenu-backend"
+  type        = string
+}
+
+variable "restaurant_assets_bucket" {
+  description = "S3 bucket name for restaurant assets from eMenu-backend"
+  type        = string
+}
+
 
 module "ecs" {
   source          = "./ecs"
@@ -67,6 +77,10 @@ module "ecs" {
 
   public_subnet_a_id =  var.public_subnet_a_id 
   public_subnet_b_id =  var.public_subnet_b_id
+
+  # Backend configuration from remote state
+  presigned_url_generator = var.presigned_url_generator_url
+  s3_bucket_name         = var.restaurant_assets_bucket
 
   env = var.environment
 }

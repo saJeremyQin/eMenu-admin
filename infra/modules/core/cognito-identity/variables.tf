@@ -13,7 +13,4 @@ variable "cognito_user_pool_provider_name" {
   type        = string
 }
 
-variable "s3_bucket_arn" {
-  description = "S3 bucket ARN for restaurant assets"
-  type        = string
-}
+# S3 相关变量已移除，因为 S3 资源已迁移到 eMenu-backend

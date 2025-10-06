@@ -38,36 +38,19 @@ output "ecr_repository_name" {
   value       = module.core_infra.ecr_repository_name
 }
 
-# S3 bucket outputs
-output "s3_bucket_name" {
-  description = "The name of the S3 bucket for restaurant assets."
-  value       = module.core_infra.s3_bucket_name
-}
-
-output "s3_bucket_arn" {
-  description = "The ARN of the S3 bucket for restaurant assets."
-  value       = module.core_infra.s3_bucket_arn
-}
-
-output "s3_bucket_domain_name" {
-  description = "The domain name of the S3 bucket."
-  value       = module.core_infra.s3_bucket_domain_name
-}
-
 output "cognito_identity_pool_id" {
   description = "The ID of the Cognito Identity Pool."
   value       = module.core_infra.cognito_identity_pool_id
 }
 
-# 定义 platform 模块的输出 (如果需要)
 output "ecs_cluster_name" {
   description = "The name of the ECS cluster for dev environment."
-  value       = module.platform_infra.ecs_cluster_name # 假设 ecs 模块有 cluster_name 输出
+  value       = module.platform_infra.ecs_cluster_name
 }
 
 output "ecs_service_name" {
   description = "The name of the ECS service for dev environment."
-  value       = module.platform_infra.ecs_service_name # 假设 ecs 模块有 service_name 输出
+  value       = module.platform_infra.ecs_service_name
 }
 
 output "alb_dns_name" {
@@ -75,21 +58,11 @@ output "alb_dns_name" {
   value = module.platform_infra.alb_dns_name
 }
 
-# Define variables in parameter store 
+# ECR Registry URL parameter for container deployment
 resource "aws_ssm_parameter" "ssm_ecr_registry_url" {
   description = "ECR Registry URL for ${var.env} environment"
-
-  name      = "/${var.repo_name}/${var.env}/ecr_registry_url"
-  value     = module.core_infra.ecr_repository_url
-  type      = "String"
-  overwrite = true  
-}
-
-resource "aws_ssm_parameter" "ssm_s3_bucket_name" {
-  description = "S3 Bucket name for restaurant assets in ${var.env} environment"
-
-  name      = "/${var.repo_name}/${var.env}/s3_bucket_name"
-  value     = module.core_infra.s3_bucket_name
-  type      = "String"
-  overwrite = true  
+  name        = "/${var.repo_name}/${var.env}/ecr_registry_url"
+  value       = module.core_infra.ecr_repository_url
+  type        = "String"
+  overwrite   = true  
 }

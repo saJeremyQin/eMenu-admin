@@ -1,9 +1,9 @@
 import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { uploadData } from 'aws-amplify/storage';
 import { v4 as uuidv4 } from 'uuid';
 import { generateClient } from 'aws-amplify/api';
 import { getCurrentUser, fetchAuthSession } from 'aws-amplify/auth';
+import backendConfig from '../../config/backend-config';
 import styles from './CreateRestaurant.module.scss';
 
 const client = generateClient();
@@ -77,8 +77,8 @@ const CreateRestaurant = () => {
 
       console.log('User Pool sub (persistent ID):', currentUser.userId);
 
-      // 调用我们的预签名 URL Lambda 函数
-      const lambdaUrl = 'https://quzdseyzfejtzxbecmnxvou4hq0yvmus.lambda-url.ap-southeast-2.on.aws/';
+      // 调用 eMenu-backend 的预签名 URL Lambda 函数
+      const lambdaUrl = backendConfig.presignedUrlGenerator;
       
       const response = await fetch(lambdaUrl, {
         method: 'POST',
@@ -143,7 +143,7 @@ const CreateRestaurant = () => {
 
     try {
       // processedKey 已经包含完整路径，直接构建 S3 公共 URL
-      const publicUrl = `https://emenu-restaurant-assets-dev.s3.ap-southeast-2.amazonaws.com/${processedKey}`;
+      const publicUrl = backendConfig.getS3PublicUrl(processedKey);
       
       console.log('Checking URL:', publicUrl);
       

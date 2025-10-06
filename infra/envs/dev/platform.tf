@@ -16,4 +16,8 @@ module "platform_infra" {
 
   public_subnet_a_id = module.core_infra.public_subnet_a_id
   public_subnet_b_id = module.core_infra.public_subnet_b_id
+
+  # Backend configuration from remote state (via core module)
+  presigned_url_generator_url = module.core_infra.backend_presigned_url_generator
+  restaurant_assets_bucket   = module.core_infra.backend_s3_bucket_name
 }

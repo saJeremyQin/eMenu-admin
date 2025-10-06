@@ -46,43 +46,8 @@ resource "aws_iam_role" "authenticated" {
   }
 }
 
-# IAM policy for S3 access - simplified version with application-layer control
-resource "aws_iam_role_policy" "authenticated_s3_policy" {
-  name = "emenu_s3_access_${var.environment}"
-  role = aws_iam_role.authenticated.id
-
-  policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Effect = "Allow"
-        Action = [
-          "s3:PutObject",
-          "s3:PutObjectAcl",
-          "s3:GetObject",
-          "s3:DeleteObject"
-        ]
-        Resource = [
-          "${var.s3_bucket_arn}/public/restaurant-logos/*"
-        ]
-      },
-      {
-        Effect = "Allow"
-        Action = [
-          "s3:ListBucket"
-        ]
-        Resource = var.s3_bucket_arn
-        Condition = {
-          StringLike = {
-            "s3:prefix" = [
-              "public/restaurant-logos/*"
-            ]
-          }
-        }
-      }
-    ]
-  })
-}
+# IAM policy for S3 access - 移除，因为 S3 访问现在通过 eMenu-backend 的 Lambda 函数处理
+# aws_iam_role_policy "authenticated_s3_policy" 已移除
 
 # Attach role to identity pool
 resource "aws_cognito_identity_pool_roles_attachment" "main" {

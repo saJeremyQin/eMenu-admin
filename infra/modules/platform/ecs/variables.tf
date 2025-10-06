@@ -42,3 +42,13 @@ variable "app_name" {
 variable "repo_name" {
   
 }
+
+variable "presigned_url_generator" {
+  description = "Presigned URL Generator Lambda URL from eMenu-backend"
+  type        = string
+}
+
+variable "s3_bucket_name" {
+  description = "S3 bucket name for restaurant assets from eMenu-backend"
+  type        = string
+}
