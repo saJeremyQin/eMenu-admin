@@ -38,10 +38,8 @@ output "ecr_repository_name" {
   value       = module.core_infra.ecr_repository_name
 }
 
-output "cognito_identity_pool_id" {
-  description = "The ID of the Cognito Identity Pool."
-  value       = module.core_infra.cognito_identity_pool_id
-}
+# Cognito Identity Pool 输出已移除，因为不再使用 Identity Pool
+# output "cognito_identity_pool_id" 已移除
 
 output "ecs_cluster_name" {
   description = "The name of the ECS cluster for dev environment."

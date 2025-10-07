@@ -52,8 +52,3 @@ variable "s3_bucket_name" {
   description = "S3 bucket name for restaurant assets from eMenu-backend"
   type        = string
 }
-
-variable "cognito_identity_pool_id" {
-  description = "Cognito Identity Pool ID"
-  type        = string
-}

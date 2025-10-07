@@ -25,10 +25,6 @@ resource "aws_ecs_task_definition" "this" {
         {
           name  = "VITE_S3_BUCKET_NAME"
           value = var.s3_bucket_name
-        },
-        {
-          name  = "VITE_COGNITO_IDENTITY_POOL_ID"
-          value = var.cognito_identity_pool_id
         }
       ],
       logConfiguration = {

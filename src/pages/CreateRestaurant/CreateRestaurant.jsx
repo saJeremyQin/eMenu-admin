@@ -66,9 +66,11 @@ const CreateRestaurant = () => {
     setProcessing(false);
     
     try {
-      // 获取当前用户和认证 token
+      // 获取当前用户和认证 token（直接从 User Pool 获取，避免 Identity Pool）
       const currentUser = await getCurrentUser();
-      const session = await fetchAuthSession();
+      const session = await fetchAuthSession({ forceRefresh: false });
+      
+      // 直接获取 User Pool 的 ID token，不使用 Identity Pool 凭证
       const token = session.tokens?.idToken?.toString();
       
       if (!token) {

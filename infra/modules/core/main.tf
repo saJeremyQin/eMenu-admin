@@ -37,17 +37,12 @@ module "ecr" {
 # S3 和 Lambda 资源已迁移到 eMenu-backend 项目
 # module "s3" 已移除
 
-# Cognito Identity Pool 暂时保留（可能还需要用于其他功能）
-module "cognito_identity" {
-  source                          = "./cognito-identity"
-  environment                     = var.environment
-  cognito_user_pool_client_id     = "4l90vqi7nfam318ci1tml91j3n"
-  cognito_user_pool_provider_name = "cognito-idp.ap-southeast-2.amazonaws.com/ap-southeast-2_Mw4J3zNoQ"
-}
+# Cognito Identity Pool 已移除，因为现在使用纯 User Pool + Lambda 方案
+# module "cognito_identity" 已移除
 
 # =====================================
 # Backend Integration (Remote State)
-# =====================================
+# =====================================#
 
 # 读取 eMenu-backend 的 remote state
 data "terraform_remote_state" "backend" {
@@ -115,11 +110,8 @@ output "ecr_repository_name" {
 # output "s3_bucket_arn" 已移除  
 # output "s3_bucket_domain_name" 已移除
 
-# 暴露 cognito-identity 模块的输出作为 core 模块的输出
-output "cognito_identity_pool_id" {
-  description = "The ID of the Cognito Identity Pool."
-  value       = module.cognito_identity.identity_pool_id
-}
+# Cognito Identity Pool 输出已移除，因为不再使用 Identity Pool
+# output "cognito_identity_pool_id" 已移除
 
 # 暴露从 eMenu-backend 获取的配置
 output "backend_presigned_url_generator" {
