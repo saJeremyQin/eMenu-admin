@@ -81,6 +81,7 @@ const CreateRestaurant = () => {
 
       // 调用 eMenu-backend 的预签名 URL Lambda 函数
       const lambdaUrl = backendConfig.presignedUrlGenerator;
+      console.log('Using Lambda URL:', lambdaUrl);
       
       const response = await fetch(lambdaUrl, {
         method: 'POST',
@@ -94,12 +95,19 @@ const CreateRestaurant = () => {
         })
       });
 
+      console.log('Response status:', response.status);
+      console.log('Response headers:', Object.fromEntries(response.headers.entries()));
+
       if (!response.ok) {
         const errorData = await response.json();
+        console.error('Error response:', errorData);
         throw new Error(errorData.error || 'Failed to get presigned URL');
       }
 
-      const { presignedUrl, s3Key, expectedProcessedKey } = await response.json();
+      const responseData = await response.json();
+      console.log('Success response:', responseData);
+      
+      const { presignedUrl, s3Key, expectedProcessedKey } = responseData;
       
       console.log('Got presigned URL for key:', s3Key);
 
