@@ -1,62 +1,100 @@
-name: Build and Push Docker Image
+name: Build and Deploy to ECS Dev
 
 on:
-    push:
-        branches:
-            - dev
+  push:
+    branches: [restaurantmanage]
+    paths:
+      - 'src/**'
+      - 'public/**'
+      - 'package*.json'
+      - 'Dockerfile'
+      - '.dockerignore'
+  workflow_dispatch:  # 允许手动触发
 
 jobs: 
-    build-and-push:
-        runs-on: ubuntu-latest
+  build-and-deploy:
+    runs-on: ubuntu-latest
 
-        permissions:
-          contents: read
-          id-token: write              #neccessary for OIDC assume role
-        
-        env:
-          ECR_REPOSITORY: emenu/emenu-admin-dev
-          ECR_REGISTRY: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.ap-southeast-2.amazonaws.com
-          AWS_REGION: ap-southeast-2
-        
-        steps:
-            - name: Checkout Code
-              uses: actions/checkout@v3
+    permissions:
+      contents: read
+      id-token: write
+    
+    env:
+      # 开发环境特定的配置
+      ENVIRONMENT: dev
+      ECR_REPOSITORY: emenu/emenu-admin-dev
+      ECR_REGISTRY: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.ap-southeast-2.amazonaws.com
+      AWS_REGION: ap-southeast-2
+      ECS_CLUSTER: emenu-admin-dev-cluster
+      ECS_SERVICE: emenu-admin-dev-service
+    
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4  # 更新版本
 
-            - name: Configure AWS condentials
-              uses: aws-actions/configure-aws-credentials@v2
-              with:
-                # use IAM role ARN, this role needs rights to push ECR(ecr:BatchCheckLayerAvailability, ecr:CompleteLayerUpload, ecr:GetDownloadUrlForLayer, ecr:InitiateLayerUpload, ecr:PutImage)
-                # this role also needs trust policy, to permit OIDC provider of GitHub Actions to assume it.
-                role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
-                aws-region: ${{ env.AWS_REGION }}
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4  # 更新版本
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
 
-            - name: Login to ECR
-              id: login-ecr
-              uses: aws-actions/amazon-ecr-login@v1
+      - name: Login to ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2  # 更新版本
 
-            - name: Build and tag docker image
-              run: |
-                # Get the SHA value of git commit as tag of image, to ensure unique
-                IMAGE_TAG="${GITHUB_SHA}"
+      - name: Build and tag docker image
+        run: |
+          # 使用简短的SHA作为标签，更易读
+          IMAGE_TAG="${GITHUB_SHA::10}"
+          FULL_IMAGE_URI="$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
+          
+          echo "🔨 Building Docker image for $ENVIRONMENT environment..."
+          echo "📦 Image: $FULL_IMAGE_URI"
+          
+          # Build docker image
+          docker build -t "$FULL_IMAGE_URI" .
+          
+          # Tag with latest and environment-specific tag
+          docker tag "$FULL_IMAGE_URI" "$ECR_REGISTRY/$ECR_REPOSITORY:latest"
+          docker tag "$FULL_IMAGE_URI" "$ECR_REGISTRY/$ECR_REPOSITORY:$ENVIRONMENT-latest"
+          
+          # 保存变量供后续步骤使用
+          echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_ENV
+          echo "FULL_IMAGE_URI=$FULL_IMAGE_URI" >> $GITHUB_ENV
 
-                # Build docker image, -t is used to specify name and tag
-                # Complete format of image name is: <ECR_REGISTRY>/<ECR_REPOSITORY>:<TAG>
+      - name: Push image to ECR
+        run: |
+          echo "📤 Pushing images to ECR..."
+          docker push "$FULL_IMAGE_URI"
+          docker push "$ECR_REGISTRY/$ECR_REPOSITORY:latest"
+          docker push "$ECR_REGISTRY/$ECR_REPOSITORY:$ENVIRONMENT-latest"
+          echo "✅ Successfully pushed all tags"
 
-                docker build -t "$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"  .
-                # Tag it with'latest', conveniently for reference latest
-                docker tag "$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" "$ECR_REGISTRY/$ECR_REPOSITORY:latest"
+      - name: Deploy to ECS
+        run: |
+          echo "🚀 Deploying to ECS $ENVIRONMENT environment..."
+          aws ecs update-service \
+            --cluster $ECS_CLUSTER \
+            --service $ECS_SERVICE \
+            --force-new-deployment \
+            --region $AWS_REGION
+          
+          echo "⏳ Waiting for deployment to stabilize..."
+          aws ecs wait services-stable \
+            --cluster $ECS_CLUSTER \
+            --services $ECS_SERVICE \
+            --region $AWS_REGION \
+            --waiter-config maxAttempts=30,delay=20
+          
+          echo "✅ Deployment completed successfully!"
 
-                echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_ENV
-
-            - name: Push image to ECR
-              run: |
-                docker push "$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
-                docker push "$ECR_REGISTRY/$ECR_REPOSITORY:latest"
-
-            - name: Force ECS service update
-              run: |
-                aws ecs update-service \
-                --cluster emenu-admin-dev-cluster \
-                --service emenu-admin-dev-service \
-                --force-new-deployment \
-                --region $AWS_REGION
+      - name: Get deployment status
+        if: always()
+        run: |
+          echo "📊 Current service status:"
+          aws ecs describe-services \
+            --cluster $ECS_CLUSTER \
+            --services $ECS_SERVICE \
+            --query 'services[0].{TaskDefinition:taskDefinition,RunningCount:runningCount,DesiredCount:desiredCount,Status:status}' \
+            --output table \
+            --region $AWS_REGION
