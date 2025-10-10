@@ -54,9 +54,8 @@ jobs:
           # Build docker image
           docker build -t "$FULL_IMAGE_URI" .
           
-          # Tag with latest and environment-specific tag
+          # 只标记 latest，ECS 任务定义使用这个
           docker tag "$FULL_IMAGE_URI" "$ECR_REGISTRY/$ECR_REPOSITORY:latest"
-          docker tag "$FULL_IMAGE_URI" "$ECR_REGISTRY/$ECR_REPOSITORY:$ENVIRONMENT-latest"
           
           # 保存变量供后续步骤使用
           echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_ENV
@@ -67,8 +66,11 @@ jobs:
           echo "📤 Pushing images to ECR..."
           docker push "$FULL_IMAGE_URI"
           docker push "$ECR_REGISTRY/$ECR_REPOSITORY:latest"
-          docker push "$ECR_REGISTRY/$ECR_REPOSITORY:$ENVIRONMENT-latest"
           echo "✅ Successfully pushed all tags"
+          
+          # 等待一下确保镜像完全可用
+          echo "⏱️  Waiting for ECR to propagate images..."
+          sleep 10
 
       - name: Deploy to ECS
         run: |
@@ -84,7 +86,8 @@ jobs:
             --cluster $ECS_CLUSTER \
             --services $ECS_SERVICE \
             --region $AWS_REGION \
-            --waiter-config maxAttempts=30,delay=20
+            --cli-read-timeout 900 \
+            --cli-connect-timeout 60
           
           echo "✅ Deployment completed successfully!"
 
