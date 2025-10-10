@@ -2,7 +2,7 @@ name: Build and Deploy to ECS Dev
 
 on:
   push:
-    branches: [restaurantmanage]
+    branches: [dev]
     paths:
       - 'src/**'
       - 'public/**'
