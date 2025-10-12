@@ -10,6 +10,10 @@ import LayoutStandard from './components/LayoutStandard/LayoutStandard'; // 原 
 import HomePage from './pages/HomePage/HomePage';
 import DishManagerPage from './pages/DishManagerPage/DishManagerPage';
 import CreateRestaurant from './pages/CreateRestaurant/CreateRestaurant';
+import RestaurantInfo from './pages/RestaurantInfo/RestaurantInfo';
+import SubscriptionPlan from './pages/SubscriptionPlan/SubscriptionPlan';
+import RestaurantGuard from './components/guards/RestaurantGuard';
+import NoRestaurantGuard from './components/guards/NoRestaurantGuard';
 
 const AuthLayoutManager = () => {
   const { authStatus } = useAuthenticator(context => [context.authStatus]);
@@ -25,7 +29,19 @@ const AuthLayoutManager = () => {
           <Routes>
             <Route path="/" element={<HomePage />} />
             <Route path="/dishes" element={<DishManagerPage />} />
-            <Route path="/restaurants" element={<CreateRestaurant />} />
+
+            {/* Restaurant routes */}
+            {/* Only allow create when user has NO restaurant */}
+            <Route element={<NoRestaurantGuard />}> 
+              <Route path="/restaurant/create" element={<CreateRestaurant />} />
+            </Route>
+
+            {/* Require existing restaurant for the following */}
+            <Route element={<RestaurantGuard />}> 
+              <Route path="/restaurant/info" element={<RestaurantInfo />} />
+              <Route path="/restaurant/subscription" element={<SubscriptionPlan />} />
+            </Route>
+
             {/* <Route path="/dish-types" element={<DishTypesPage />} /> */}
             {/* <Route path="/settings" element={<SettingsPage />} /> */}
             {/* 如果用户已登录，再次访问 /auth 应该重定向或显示主页 */}

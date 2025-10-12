@@ -224,8 +224,8 @@ const CreateRestaurant = () => {
         ownerId: user.userId
       });
 
-      alert('Restaurant created successfully!');
-      navigate('/restaurants');
+  alert('Restaurant created successfully!');
+  navigate('/restaurant/info');
       
     } catch (error) {
       console.error('Submit error:', error);
