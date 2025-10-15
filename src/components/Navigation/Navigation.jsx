@@ -19,7 +19,7 @@ const Navigation = () => {
           <span className={styles.submenuTitle}><span aria-hidden="true" role="img">🏪</span>Restaurant</span>
           <ul>
             <li><Link to="/restaurant/info" className={isActive('/restaurant/info') ? styles.active : ''}><span aria-hidden="true" role="img">📝</span>Restaurant Info</Link></li>
-            <li><Link to="/restaurant/subscription" className={isActive('/restaurant/subscription') ? styles.active : ''}><span aria-hidden="true" role="img">💎</span>Subscription Plan</Link></li>
+            <li><Link to="/restaurant/subscriptionplan" className={isActive('/restaurant/subscriptionplan') ? styles.active : ''}><span aria-hidden="true" role="img">💎</span>Subscription Plan</Link></li>
           </ul>
         </li>
         <li><Link to="/settings" className={isActive('/settings') ? styles.active : ''}><span aria-hidden="true" role="img">⚙️</span>Setting</Link></li>

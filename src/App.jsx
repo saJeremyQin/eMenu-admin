@@ -39,7 +39,7 @@ const AuthLayoutManager = () => {
             {/* Require existing restaurant for the following */}
             <Route element={<RestaurantGuard />}> 
               <Route path="/restaurant/info" element={<RestaurantInfo />} />
-              <Route path="/restaurant/subscription" element={<SubscriptionPlan />} />
+              <Route path="/restaurant/subscriptionplan" element={<SubscriptionPlan />} />
             </Route>
 
             {/* <Route path="/dish-types" element={<DishTypesPage />} /> */}
