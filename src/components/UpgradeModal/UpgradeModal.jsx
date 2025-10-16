@@ -1,10 +1,13 @@
+
 import React from 'react';
 import styles from './UpgradeModal.module.scss';
 import { fakeCharge } from '../../lib/payments/mockPayment';
 
 const PRICING = {
-  PREMIUM: 9.99 // per month
+  PREMIUM: 9.99,
+  ULTIMATE: 29.99
 };
+
 
 function addMonthsISO(fromISO, months) {
   const base = fromISO ? new Date(fromISO) : new Date();
@@ -13,8 +16,9 @@ function addMonthsISO(fromISO, months) {
   return d.toISOString();
 }
 
-const UpgradeModal = ({ open, onClose, currentPlan, onSuccess }) => {
-  const [plan] = React.useState('PREMIUM');
+
+const UpgradeModal = ({ open, onClose, selectedPlan, onSuccess }) => {
+  const plan = selectedPlan || 'PREMIUM';
   const [months, setMonths] = React.useState(1);
   const [loading, setLoading] = React.useState(false);
   if (!open) return null;
@@ -44,7 +48,7 @@ const UpgradeModal = ({ open, onClose, currentPlan, onSuccess }) => {
   return (
     <div className={styles.overlay} onClick={onClose}>
       <div className={styles.modal} onClick={e => e.stopPropagation()}>
-        <h3>Upgrade to PREMIUM</h3>
+        <h3>Upgrade to {plan}</h3>
         <div className={styles.row}>
           <label>Duration</label>
           <select value={months} onChange={(e) => setMonths(Number(e.target.value))}>

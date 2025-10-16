@@ -30,6 +30,7 @@ const SubscriptionPlan = () => {
   const [loading, setLoading] = React.useState(true);
   const [restaurant, setRestaurant] = React.useState(null);
   const [showModal, setShowModal] = React.useState(false);
+  const [selectedPlan, setSelectedPlan] = React.useState(null);
 
 
   React.useEffect(() => {
@@ -138,7 +139,7 @@ const SubscriptionPlan = () => {
           <div className={styles.planCardPremium}>
             <div className={styles.cardHeader}>PREMIUM</div>
             <div className={styles.price}>$9.99<span className={styles.perMonth}>/month</span></div>
-            <button className={styles.primaryBtn}>Get Started</button>
+            <button className={styles.primaryBtn} onClick={() => { setSelectedPlan('PREMIUM'); setShowModal(true); }}>Get Started</button>
             <ul>
               <li>Menu items: Unlimited</li>
               <li>Images: Unlimited</li>
@@ -149,7 +150,7 @@ const SubscriptionPlan = () => {
           <div className={styles.planCardUltimate}>
             <div className={styles.cardHeader}>ULTIMATE</div>
             <div className={styles.price}>$29.99<span className={styles.perMonth}>/month</span></div>
-            <button className={styles.primaryBtn}>Get Started</button>
+            <button className={styles.primaryBtn} onClick={() => { setSelectedPlan('ULTIMATE'); setShowModal(true); }}>Get Started</button>
             <ul>
               <li>Menu items: 1000</li>
               <li>Images: Unlimited</li>
@@ -164,6 +165,7 @@ const SubscriptionPlan = () => {
         open={showModal}
         onClose={() => setShowModal(false)}
         currentPlan={plan}
+        selectedPlan={selectedPlan}
         onSuccess={(payload) => {
           handleUpgradeSuccess(payload);
           setShowModal(false);
