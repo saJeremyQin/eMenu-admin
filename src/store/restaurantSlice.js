@@ -36,6 +36,10 @@ const initialState = {
   image: null,
   subscriptionPlan: null,
   subscriptionExpiry: null,
+  // loading/loaded flags for tri-state
+  loading: false,
+  loaded: false,
+  error: null,
 };
 
 const restaurantSlice = createSlice({
@@ -64,7 +68,14 @@ const restaurantSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
+      .addCase(fetchRestaurant.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
       .addCase(fetchRestaurant.fulfilled, (state, action) => {
+        state.loading = false;
+        state.loaded = true;
+        state.error = null;
         if (action.payload) {
           const p = action.payload;
           state.id = p.id ?? state.id;
@@ -77,7 +88,9 @@ const restaurantSlice = createSlice({
         }
       })
       .addCase(fetchRestaurant.rejected, (state, action) => {
-        // keep state unchanged on error
+        state.loading = false;
+        state.loaded = true; // finished attempt
+        state.error = action.payload || action.error?.message || 'Failed to fetch restaurant';
       });
   }
 });
@@ -88,4 +101,9 @@ export default restaurantSlice.reducer;
 // selectors
 export const selectRestaurant = (state) => state.restaurant;
 export const selectRestaurantName = createSelector([selectRestaurant], (r) => r?.name);
-export const selectHasRestaurant = createSelector([selectRestaurant], (r) => !!r?.id);
+export const selectRestaurantLoaded = createSelector([selectRestaurant], (r) => r?.loaded);
+export const selectHasRestaurant = createSelector([selectRestaurant], (r) => {
+  if (!r) return null;
+  if (!r.loaded) return null; // not loaded yet -> tri-state null
+  return !!r.id;
+});

@@ -2,57 +2,35 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import styles from './RestaurantInfo.module.scss';
 import { generateClient } from 'aws-amplify/api';
-import { getCurrentUser } from 'aws-amplify/auth';
+import { useSelector, useDispatch } from 'react-redux';
+import { selectRestaurant, selectRestaurantLoaded, setRestaurant } from '../../store/restaurantSlice';
 
 const client = generateClient();
 
 const RestaurantInfo = () => {
-  const [loading, setLoading] = React.useState(true);
-  const [restaurant, setRestaurant] = React.useState(null);
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+
+  // read restaurant from redux
+  const restaurant = useSelector(selectRestaurant);
+  const restaurantLoaded = useSelector(selectRestaurantLoaded);
+
   const [formData, setFormData] = React.useState({
     name: '',
     address: '',
     phone: ''
   });
-  const navigate = useNavigate();
 
+  // initialize form when restaurant is loaded/changes
   React.useEffect(() => {
-    const run = async () => {
-      try {
-        const user = await getCurrentUser();
-        
-        // 直接获取餐厅信息（后端会根据用户身份自动查找关联的餐厅）
-        const restaurantQuery = /* GraphQL */ `
-          query GetRestaurant {
-            getRestaurant {
-              id name address phone image subscriptionPlan subscriptionExpiry
-            }
-          }
-        `;
-        const restaurantRes = await client.graphql({ 
-          query: restaurantQuery
-        });
-        
-        console.log('Restaurant data:', restaurantRes?.data?.getRestaurant);
-        const restaurantData = restaurantRes?.data?.getRestaurant;
-        setRestaurant(restaurantData);
-        
-        if (restaurantData) {
-          setFormData({
-            name: restaurantData.name || '',
-            address: restaurantData.address || '',
-            phone: restaurantData.phone || ''
-          });
-        }
-      } catch (e) {
-        console.error('Load restaurant failed', e);
-        setRestaurant(null);
-      } finally {
-        setLoading(false);
-      }
-    };
-    run();
-  }, []);
+    if (restaurant && restaurantLoaded) {
+      setFormData({
+        name: restaurant.name || '',
+        address: restaurant.address || '',
+        phone: restaurant.phone || ''
+      });
+    }
+  }, [restaurant, restaurantLoaded]);
 
   const handleInputChange = (e) => {
     setFormData({
@@ -63,7 +41,7 @@ const RestaurantInfo = () => {
 
   const onSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!formData.name || !formData.address || !formData.phone) {
       alert('Please fill in all required fields');
       return;
@@ -73,27 +51,32 @@ const RestaurantInfo = () => {
       const mutation = /* GraphQL */ `
         mutation UpdateRestaurantInfo($input: RestaurantInfoInput!) {
           updateRestaurantInfo(input: $input) {
-            id name address phone image
+            id
+            name
+            address
+            phone
+            image
           }
         }
       `;
-      await client.graphql({ 
+      const res = await client.graphql({ 
         query: mutation, 
-        variables: { 
-          input: formData 
-        } 
+        variables: { input: formData } 
       });
+      const updated = res?.data?.updateRestaurantInfo;
       alert('Restaurant updated successfully!');
-      
-      // 重新加载餐厅数据
-      window.location.reload();
+      // update redux store with latest restaurant info
+      if (updated) {
+        dispatch(setRestaurant(updated));
+        console.log('Updated restaurant stored in redux:', updated);
+      }
     } catch (e) {
       console.error('Update failed', e);
       alert('Update failed: ' + (e.message || 'Unknown error'));
     }
   };
 
-  if (loading) return <div className={styles.container}><p>Loading...</p></div>;
+  if (!restaurantLoaded) return <div className={styles.container}><p>Loading...</p></div>;
   if (!restaurant) return <div className={styles.container}><p>No restaurant found.</p></div>;
 
   return (

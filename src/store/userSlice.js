@@ -45,10 +45,24 @@ const userSlice = createSlice({
   initialState,
   reducers: {
     setUser(state, action) {
-      return { ...state, ...action.payload, isAuthenticated: true };
+      const payload = action.payload || {};
+      state.id = payload.id ?? state.id;
+      state.cognitoId = payload.cognitoId ?? state.cognitoId;
+      state.email = payload.email ?? state.email;
+      state.role = payload.role ?? state.role;
+      state.restaurantId = payload.restaurantId ?? state.restaurantId;
+      state.isAuthenticated = true;
+      state.error = null;
     },
     clearUser(state) {
-      return { ...initialState };
+      state.id = null;
+      state.cognitoId = null;
+      state.email = null;
+      state.role = null;
+      state.restaurantId = null;
+      state.isAuthenticated = false;
+      state.loading = false;
+      state.error = null;
     },
     updateUserField(state, action) {
       const { key, value } = action.payload;

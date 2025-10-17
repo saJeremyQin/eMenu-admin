@@ -1,46 +1,31 @@
-import React from 'react';
-import { Navigate, Outlet } from 'react-router-dom';
-import { generateClient } from 'aws-amplify/api';
-import { getCurrentUser } from 'aws-amplify/auth';
+import React, { useEffect } from 'react';
+import { useSelector } from 'react-redux';
+import { useNavigate, Outlet } from 'react-router-dom';
+import { selectHasRestaurant, selectRestaurant } from '../../store/restaurantSlice';
+import { selectUser } from '../../store/userSlice';
 
-const client = generateClient();
+const RestaurantGuard = ({ children }) => {
+  const hasRestaurant = useSelector(selectHasRestaurant);
+  const restaurant = useSelector(selectRestaurant);
+  const user = useSelector(selectUser);
+  const navigate = useNavigate();
 
-// Very light guard: if user has a restaurantId, allow; otherwise redirect to create
-const RestaurantGuard = () => {
-  const [loading, setLoading] = React.useState(true);
-  const [hasRestaurant, setHasRestaurant] = React.useState(false);
+  useEffect(() => {
+    // 没餐厅 -> 去创建
+    if (hasRestaurant === false) {
+      navigate('/restaurant/create', { replace: true });
+      return;
+    }
+    // 若需要更严格的校验：user.restaurantId 必须匹配当前 restaurant.id
+    if (hasRestaurant === true && user?.restaurantId && restaurant?.id && user.restaurantId !== restaurant.id) {
+      // 非本餐厅用户，跳回首页或显示无权限
+      navigate('/', { replace: true });
+    }
+  }, [hasRestaurant, user, restaurant, navigate]);
 
-  React.useEffect(() => {
-    const run = async () => {
-      try {
-        const user = await getCurrentUser();
-        const query = /* GraphQL */ `
-          query GetMyRestaurantMeta($id: ID!) {
-            getUser(id: $id) { id restaurantId }
-          }
-        `;
-        const res = await client.graphql({ query, variables: { id: user.userId } });
-        const userData = res?.data?.getUser;
-        console.log('RestaurantGuard - User data:', userData);
-        
-        // 检查是否有 restaurantId 且不为空
-        const hasValidRestaurant = userData?.restaurantId && userData.restaurantId.trim() !== '';
-        setHasRestaurant(hasValidRestaurant);
-        console.log('RestaurantGuard - Has restaurant:', hasValidRestaurant);
-      } catch (e) {
-        console.error('RestaurantGuard error:', e);
-        setHasRestaurant(false);
-      } finally {
-        setLoading(false);
-      }
-    };
-    run();
-  }, []);
+  if (hasRestaurant === null || hasRestaurant === undefined) return null;
 
-  if (loading) return <div>Loading RestaurantGuard...</div>;
-  
-  console.log('RestaurantGuard rendering - hasRestaurant:', hasRestaurant);
-  return hasRestaurant ? <Outlet /> : <Navigate to="/restaurant/create" replace />;
+  return children ?? <Outlet />;
 };
 
 export default RestaurantGuard;

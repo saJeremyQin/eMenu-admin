@@ -31,20 +31,30 @@ const AuthLayoutManager = () => {
   const hasRestaurant = useSelector(selectHasRestaurant);
 
   useEffect(() => {
+    if(!isAuthenticated) return
     const init = async () => {
       try {
-        await dispatch(fetchUser()).unwrap();
+        const user = await dispatch(fetchUser()).unwrap();
+        // debug: print user and store state
+        console.log('fetchUser result:', user);
+        if (typeof window !== 'undefined' && window.__APP_STORE__) {
+          console.log('store.user after fetchUser:', window.__APP_STORE__.getState().user);
+        }
       } catch (e) {
         // ignore
       }
       try {
         await dispatch(fetchRestaurant()).unwrap();
+        // console.log('fetchRestaurant result:', restaurant);
+        // if (typeof window !== 'undefined' && window.__APP_STORE__) {
+        //   console.log('store.restaurant after fetchRestaurant:', window.__APP_STORE__.getState().restaurant);
+        // }
       } catch (e) {
         // ignore
       }
     };
     init();
-  }, [dispatch]);
+  }, [dispatch, isAuthenticated]);
 
   useEffect(() => {
     // 如果没有餐厅，跳转到创建页面（注意：NoRestaurantGuard 也会控制路由）
