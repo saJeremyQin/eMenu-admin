@@ -6,6 +6,11 @@ import '@aws-amplify/ui-react/styles.css'; // Amplify UI 的基础样式
 
 import LayoutLogin from './components/LayoutLogin/LayoutLogin';
 import LayoutStandard from './components/LayoutStandard/LayoutStandard'; // 原 Layout 重命名
+import { useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchUser } from './store/userSlice';
+import { fetchRestaurant, selectHasRestaurant } from './store/restaurantSlice';
+import { useNavigate } from 'react-router-dom';
 
 import HomePage from './pages/HomePage/HomePage';
 import DishManagerPage from './pages/DishManagerPage/DishManagerPage';
@@ -20,6 +25,33 @@ const AuthLayoutManager = () => {
 
   // 根据认证状态选择渲染的布局
   const isAuthenticated = authStatus === 'authenticated';
+
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const hasRestaurant = useSelector(selectHasRestaurant);
+
+  useEffect(() => {
+    const init = async () => {
+      try {
+        await dispatch(fetchUser()).unwrap();
+      } catch (e) {
+        // ignore
+      }
+      try {
+        await dispatch(fetchRestaurant()).unwrap();
+      } catch (e) {
+        // ignore
+      }
+    };
+    init();
+  }, [dispatch]);
+
+  useEffect(() => {
+    // 如果没有餐厅，跳转到创建页面（注意：NoRestaurantGuard 也会控制路由）
+    if (isAuthenticated && hasRestaurant === false) {
+      navigate('/restaurant/create');
+    }
+  }, [isAuthenticated, hasRestaurant, navigate]);
 
   return (
     <> {/* 使用 React Fragment 包裹，因为这里是子组件的根 */}

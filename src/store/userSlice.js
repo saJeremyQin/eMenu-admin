@@ -1,0 +1,91 @@
+import { createSlice, createAsyncThunk, createSelector } from '@reduxjs/toolkit';
+import { generateClient } from 'aws-amplify/api';
+import { getCurrentUser } from 'aws-amplify/auth';
+
+const client = generateClient();
+
+export const fetchUser = createAsyncThunk(
+  'user/fetchUser',
+  async (_, thunkAPI) => {
+    try {
+      const current = await getCurrentUser();
+      const userId = current?.userId || current?.username || current?.attributes?.sub;
+      const query = /* GraphQL */ `
+        query GetUser($id: ID!) {
+          getUser(id: $id) {
+            id
+            cognitoId
+            email
+            role
+            restaurantId
+          }
+        }
+      `;
+      const resp = await client.graphql({ query, variables: { id: userId } });
+      return resp?.data?.getUser || null;
+    } catch (e) {
+      return thunkAPI.rejectWithValue(e.message || 'Failed to fetch user');
+    }
+  }
+);
+
+const initialState = {
+  id: null,
+  cognitoId: null,
+  email: null,
+  role: null,
+  restaurantId: null,
+  isAuthenticated: false,
+  loading: false,
+  error: null,
+};
+
+const userSlice = createSlice({
+  name: 'user',
+  initialState,
+  reducers: {
+    setUser(state, action) {
+      return { ...state, ...action.payload, isAuthenticated: true };
+    },
+    clearUser(state) {
+      return { ...initialState };
+    },
+    updateUserField(state, action) {
+      const { key, value } = action.payload;
+      state[key] = value;
+    }
+  },
+  extraReducers: (builder) => {
+    builder
+      .addCase(fetchUser.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchUser.fulfilled, (state, action) => {
+        state.loading = false;
+        state.error = null;
+        if (action.payload) {
+          // mutate draft state instead of returning a new object to satisfy Immer
+          state.id = action.payload.id ?? state.id;
+          state.cognitoId = action.payload.cognitoId ?? state.cognitoId;
+          state.email = action.payload.email ?? state.email;
+          state.role = action.payload.role ?? state.role;
+          state.restaurantId = action.payload.restaurantId ?? state.restaurantId;
+          state.isAuthenticated = true;
+        }
+      })
+      .addCase(fetchUser.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload || action.error?.message;
+      });
+  }
+});
+
+export const { setUser, clearUser, updateUserField } = userSlice.actions;
+export default userSlice.reducer;
+
+// Selectors
+export const selectUser = (state) => state.user;
+export const selectUserId = createSelector([selectUser], (u) => u?.id);
+export const selectRestaurantId = createSelector([selectUser], (u) => u?.restaurantId);
+export const selectIsAuthenticated = createSelector([selectUser], (u) => !!u?.isAuthenticated);
