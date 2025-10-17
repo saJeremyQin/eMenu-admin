@@ -103,3 +103,4 @@ export const selectUser = (state) => state.user;
 export const selectUserId = createSelector([selectUser], (u) => u?.id);
 export const selectRestaurantId = createSelector([selectUser], (u) => u?.restaurantId);
 export const selectIsAuthenticated = createSelector([selectUser], (u) => !!u?.isAuthenticated);
+export const selectUserLoading = createSelector(selectUser, (u) => u.loading);

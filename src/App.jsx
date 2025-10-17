@@ -8,8 +8,9 @@ import LayoutLogin from './components/LayoutLogin/LayoutLogin';
 import LayoutStandard from './components/LayoutStandard/LayoutStandard'; // 原 Layout 重命名
 import { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchUser } from './store/userSlice';
-import { fetchRestaurant, selectHasRestaurant } from './store/restaurantSlice';
+import { fetchUser, selectUserLoading } from './store/userSlice';
+import { fetchRestaurant, selectHasRestaurant, selectRestaurantLoading, selectRestaurantLoaded } from './store/restaurantSlice';
+import LoadingOverlay from './components/LoadingOverlay/LoadingOverlay';
 import { useNavigate } from 'react-router-dom';
 
 import HomePage from './pages/HomePage/HomePage';
@@ -29,6 +30,10 @@ const AuthLayoutManager = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const hasRestaurant = useSelector(selectHasRestaurant);
+  const userLoading = useSelector(selectUserLoading);
+  const restaurantLoading = useSelector(selectRestaurantLoading);
+  const restaurantLoaded = useSelector(selectRestaurantLoaded);
+  const [showInitOverlay, setShowInitOverlay] = React.useState(false);
 
   useEffect(() => {
     if(!isAuthenticated) return
@@ -62,9 +67,21 @@ const AuthLayoutManager = () => {
       navigate('/restaurant/create');
     }
   }, [isAuthenticated, hasRestaurant, navigate]);
+  // compute if either fetch is in progress or we haven't loaded restaurant yet
+  const initInProgress = userLoading || restaurantLoading || restaurantLoaded === null;
+
+  // Show overlay exactly when init is in progress (no artificial delay)
+  React.useEffect(() => {
+    setShowInitOverlay(!!initInProgress);
+  }, [initInProgress]);
+
+  // compute if either fetch is in progress or we haven't loaded restaurant yet
 
   return (
     <> {/* 使用 React Fragment 包裹，因为这里是子组件的根 */}
+      {/* Show global loading overlay during initialization. We add a tiny minimum display time
+          so users can notice it even if backend responses are very quick. */}
+      {showInitOverlay && <LoadingOverlay label="Loading..." />}
       {isAuthenticated ? (
         // 已登录用户看到的布局
         <LayoutStandard>

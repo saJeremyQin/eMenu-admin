@@ -107,3 +107,4 @@ export const selectHasRestaurant = createSelector([selectRestaurant], (r) => {
   if (!r.loaded) return null; // not loaded yet -> tri-state null
   return !!r.id;
 });
+export const selectRestaurantLoading = createSelector([selectRestaurant], (r) => r?.loading);
