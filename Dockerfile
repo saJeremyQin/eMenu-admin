@@ -7,8 +7,9 @@ WORKDIR /app
 # Copy dependencies config file
 COPY package*.json ./
 
-# Install dependencies
-RUN npm install
+# Install dependencies (use npm ci for deterministic installs and allow legacy peer deps in CI)
+# Using --legacy-peer-deps here avoids ERESOLVE failures in the container build.
+RUN npm ci --legacy-peer-deps --silent
 
 # Copy source code
 COPY . .
