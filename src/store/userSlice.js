@@ -10,19 +10,20 @@ export const fetchUser = createAsyncThunk(
     try {
       const current = await getCurrentUser();
       const userId = current?.userId || current?.username || current?.attributes?.sub;
-      const query = /* GraphQL */ `
-        query GetUser($id: ID!) {
-          getUser(id: $id) {
-            id
-            cognitoId
-            email
-            role
-            restaurantId
+        const cognitoSub = userId;
+        const query = /* GraphQL */ `
+          query GetUserByCognito($cid: ID!) {
+            getUserByCognito(cid: $cid) {
+              id
+              cognitoId
+              email
+              role
+              restaurantId
+            }
           }
-        }
-      `;
-      const resp = await client.graphql({ query, variables: { id: userId } });
-      return resp?.data?.getUser || null;
+        `;
+        const resp = await client.graphql({ query, variables: { cid: cognitoSub } });
+        return resp?.data?.getUserByCognito || null;
     } catch (e) {
       return thunkAPI.rejectWithValue(e.message || 'Failed to fetch user');
     }
