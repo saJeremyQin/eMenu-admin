@@ -6,10 +6,20 @@ import '@aws-amplify/ui-react/styles.css'; // Amplify UI 的基础样式
 
 import LayoutLogin from './components/LayoutLogin/LayoutLogin';
 import LayoutStandard from './components/LayoutStandard/LayoutStandard'; // 原 Layout 重命名
+import { useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchUser, selectUserLoading } from './store/userSlice';
+import { fetchRestaurant, selectHasRestaurant, selectRestaurantLoading, selectRestaurantLoaded } from './store/restaurantSlice';
+import LoadingOverlay from './components/LoadingOverlay/LoadingOverlay';
+import { useNavigate } from 'react-router-dom';
 
 import HomePage from './pages/HomePage/HomePage';
 import DishManagerPage from './pages/DishManagerPage/DishManagerPage';
 import CreateRestaurant from './pages/CreateRestaurant/CreateRestaurant';
+import RestaurantInfo from './pages/RestaurantInfo/RestaurantInfo';
+import SubscriptionPlan from './pages/SubscriptionPlan/SubscriptionPlan';
+import RestaurantGuard from './components/guards/RestaurantGuard';
+import NoRestaurantGuard from './components/guards/NoRestaurantGuard';
 
 const AuthLayoutManager = () => {
   const { authStatus } = useAuthenticator(context => [context.authStatus]);
@@ -17,15 +27,80 @@ const AuthLayoutManager = () => {
   // 根据认证状态选择渲染的布局
   const isAuthenticated = authStatus === 'authenticated';
 
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const hasRestaurant = useSelector(selectHasRestaurant);
+  const userLoading = useSelector(selectUserLoading);
+  const restaurantLoading = useSelector(selectRestaurantLoading);
+  const restaurantLoaded = useSelector(selectRestaurantLoaded);
+  const [showInitOverlay, setShowInitOverlay] = React.useState(false);
+
+  useEffect(() => {
+    if(!isAuthenticated) return
+    const init = async () => {
+      try {
+        const user = await dispatch(fetchUser()).unwrap();
+        // debug: print user and store state
+        console.log('fetchUser result:', user);
+        if (typeof window !== 'undefined' && window.__APP_STORE__) {
+          console.log('store.user after fetchUser:', window.__APP_STORE__.getState().user);
+        }
+      } catch (e) {
+        // ignore
+      }
+      try {
+        await dispatch(fetchRestaurant()).unwrap();
+        // console.log('fetchRestaurant result:', restaurant);
+        // if (typeof window !== 'undefined' && window.__APP_STORE__) {
+        //   console.log('store.restaurant after fetchRestaurant:', window.__APP_STORE__.getState().restaurant);
+        // }
+      } catch (e) {
+        // ignore
+      }
+    };
+    init();
+  }, [dispatch, isAuthenticated]);
+
+  useEffect(() => {
+    // 如果没有餐厅，跳转到创建页面（注意：NoRestaurantGuard 也会控制路由）
+    if (isAuthenticated && hasRestaurant === false) {
+      navigate('/restaurant/create');
+    }
+  }, [isAuthenticated, hasRestaurant, navigate]);
+  // compute if either fetch is in progress or we haven't loaded restaurant yet
+  const initInProgress = userLoading || restaurantLoading || restaurantLoaded === null;
+
+  // Show overlay exactly when init is in progress (no artificial delay)
+  React.useEffect(() => {
+    setShowInitOverlay(!!initInProgress);
+  }, [initInProgress]);
+
+  // compute if either fetch is in progress or we haven't loaded restaurant yet
+
   return (
     <> {/* 使用 React Fragment 包裹，因为这里是子组件的根 */}
+      {/* Show global loading overlay during initialization. We add a tiny minimum display time
+          so users can notice it even if backend responses are very quick. */}
+      {showInitOverlay && <LoadingOverlay label="Loading..." />}
       {isAuthenticated ? (
         // 已登录用户看到的布局
         <LayoutStandard>
           <Routes>
             <Route path="/" element={<HomePage />} />
             <Route path="/dishes" element={<DishManagerPage />} />
-            <Route path="/restaurants" element={<CreateRestaurant />} />
+
+            {/* Restaurant routes */}
+            {/* Only allow create when user has NO restaurant */}
+            <Route element={<NoRestaurantGuard />}> 
+              <Route path="/restaurant/create" element={<CreateRestaurant />} />
+            </Route>
+
+            {/* Require existing restaurant for the following */}
+            <Route element={<RestaurantGuard />}> 
+              <Route path="/restaurant/info" element={<RestaurantInfo />} />
+              <Route path="/restaurant/subscriptionplan" element={<SubscriptionPlan />} />
+            </Route>
+
             {/* <Route path="/dish-types" element={<DishTypesPage />} /> */}
             {/* <Route path="/settings" element={<SettingsPage />} /> */}
             {/* 如果用户已登录，再次访问 /auth 应该重定向或显示主页 */}

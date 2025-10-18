@@ -11,7 +11,8 @@ const client = generateClient();
 const CreateRestaurant = () => {
   const [formData, setFormData] = useState({
     name: '',
-    address: ''
+    address: '',
+    phone: ''
   });
   const [selectedFile, setSelectedFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(null);
@@ -179,7 +180,7 @@ const CreateRestaurant = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    if (!formData.name || !formData.address) {
+    if (!formData.name || !formData.address || !formData.phone) {
       alert('Please fill in all required fields');
       return;
     }
@@ -188,44 +189,40 @@ const CreateRestaurant = () => {
       // 获取当前用户信息
       const user = await getCurrentUser();
       
-      // 这里你需要根据你的AppSync schema来调整GraphQL mutation
-      // 例如：
-      /*
+      // 创建餐厅的 GraphQL mutation
       const createRestaurantMutation = `
-        mutation CreateRestaurant($input: CreateRestaurantInput!) {
+        mutation CreateRestaurant($input: RestaurantInput!) {
           createRestaurant(input: $input) {
             id
             name
             address
-            logoUrl
-            ownerId
+            phone
+            image
+            bossId
           }
         }
       `;
 
       const restaurantData = {
-        name: formData.name,
-        address: formData.address,
-        logoUrl: uploadedImageUrl,
-        ownerId: user.userId
+        input: {
+          name: formData.name,
+          address: formData.address,
+          phone: formData.phone,
+          image: uploadedImageUrl || null
+        }
       };
+
+      console.log('Creating restaurant with data:', restaurantData);
 
       const result = await client.graphql({
         query: createRestaurantMutation,
-        variables: { input: restaurantData }
+        variables: restaurantData
       });
-      */
 
-      // 临时输出数据，你需要替换为实际的GraphQL mutation
-      console.log('Restaurant data to be saved:', {
-        name: formData.name,
-        address: formData.address,
-        logoUrl: uploadedImageUrl,
-        ownerId: user.userId
-      });
+      console.log('Restaurant created:', result.data.createRestaurant);
 
       alert('Restaurant created successfully!');
-      navigate('/restaurants');
+      navigate('/restaurant/info');
       
     } catch (error) {
       console.error('Submit error:', error);
@@ -261,6 +258,19 @@ const CreateRestaurant = () => {
             onChange={handleInputChange}
             required
             placeholder="Enter restaurant address"
+          />
+        </div>
+
+        <div className={styles.inputGroup}>
+          <label htmlFor="phone">Phone Number *</label>
+          <input
+            type="tel"
+            id="phone"
+            name="phone"
+            value={formData.phone}
+            onChange={handleInputChange}
+            required
+            placeholder="Enter phone number"
           />
         </div>
 

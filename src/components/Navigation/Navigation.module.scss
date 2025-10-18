@@ -37,6 +37,69 @@
     margin-bottom: var.$spacing-sm; // 列表项之间的底部外边距
   }
 
+  // 子菜单样式
+  .submenu {
+    .submenuTitle {
+      display: flex;
+      align-items: center;
+      gap: var.$spacing-sm;
+      padding: var.$spacing-sm var.$spacing-md;
+      font-weight: bold;
+      font-size: 1.1em;
+      color: var.$text-color;
+      cursor: default;
+      white-space: nowrap;
+
+      span[role="img"] {
+        font-size: 1.2em;
+      }
+    }
+
+    ul {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+      padding-left: var.$spacing-lg; // 子菜单缩进
+
+      li {
+        margin-bottom: calc(var.$spacing-sm / 2); // 子菜单项间距更小
+      }
+
+      a {
+        display: flex;
+        align-items: center;
+        gap: var.$spacing-sm;
+        text-decoration: none;
+        font-weight: normal; // 子菜单字体粗细正常
+        font-size: 0.95em; // 子菜单字号更小
+        color: color.adjust(var.$text-color, $lightness: -10%); // 子菜单颜色稍微深一些
+        padding: calc(var.$spacing-sm / 2) var.$spacing-sm; // 子菜单内边距更小
+        white-space: nowrap;
+        border-radius: 4px; // 圆角
+
+        &:visited {
+          color: color.adjust(var.$text-color, $lightness: -10%);
+        }
+
+        &:hover,
+        &:focus {
+          color: var.$primary-color;
+          background-color: color.adjust(var.$background-color-dark, $lightness: 5%);
+        }
+
+        // 选中状态的样式
+        &.active {
+          color: var.$primary-color;
+          background-color: color.adjust(var.$primary-color, $lightness: 40%, $alpha: -0.9);
+        }
+
+        span[role="img"] {
+          font-size: 1em; // 子菜单图标更小
+        }
+      }
+    }
+  }
+
   a {
     display: flex; // 使用 Flexbox 布局
     align-items: center; // 垂直居中对齐图标和文本
@@ -47,6 +110,7 @@
     font-size: 1.1em;
     color: var.$text-color;
     padding: var.$spacing-sm var.$spacing-md; // 增加链接的内边距，使其更容易点击
+    border-radius: 5px; // 圆角
 
     &:visited {
       color: var.$text-color;
@@ -56,7 +120,12 @@
     &:focus {
       color: var.$primary-color;
       background-color: color.adjust(var.$background-color-dark, $lightness: 3%); // 鼠标悬停时背景色变浅
-      border-radius: 5px; // 轻微圆角
+    }
+
+    // 选中状态的样式
+    &.active {
+      color: var.$primary-color;
+      background-color: color.adjust(var.$primary-color, $lightness: 40%, $alpha: -0.9);
     }
 
     span[role="img"] { // 针对 emoji 图标的样式

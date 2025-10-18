@@ -1,0 +1,173 @@
+
+// 顶级样式，去除嵌套，保证所有 class 都是独立的
+.container {
+	width: 900px;
+	margin: 40px auto;
+	background: #fff;
+	border-radius: 18px;
+	box-shadow: 0 2px 16px rgba(0,0,0,0.07);
+	padding: 32px 40px;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+
+.title {
+	text-align: center;
+	font-size: 2.2rem;
+	font-weight: 700;
+	margin-bottom: 32px;
+}
+.section {
+	display: flex;
+	justify-content: center;
+	margin-bottom: 32px;
+}
+.infoCardCentered {
+	background: #fff;
+	border-radius: 12px;
+	box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+	padding: 32px 36px;
+	min-width: 320px;
+	max-width: 400px;
+	text-align: center;
+}
+.planType {
+	background: #e9f2ff;
+	color: #1663dc;
+	font-weight: 600;
+	border-radius: 999px;
+	padding: 8px 24px;
+	min-width: 90px;
+	text-align: center;
+	font-size: 1.1rem;
+	margin-bottom: 12px;
+}
+
+.metaRow {
+	margin-bottom: 6px;
+	color: #333;
+	font-size: 1rem;
+}
+.compareSection {
+	margin-top: 0;
+}
+.compareTitle {
+	text-align: center;
+	font-size: 1.4rem;
+	font-weight: 600;
+	margin-bottom: 18px;
+}
+.planCardsRowCentered {
+	display: flex;
+	flex-direction: row;
+	justify-content: center;
+	gap: 40px;
+	margin-top: 24px;
+	margin-bottom: 32px;
+}
+.planCardBasic, .planCardPremium, .planCardUltimate {
+		flex: 1 1 0;
+		border-radius: 18px;
+		padding: 32px 24px 28px 24px;
+		min-width: 240px;
+		max-width: 320px;
+		text-align: center;
+		box-shadow: 0 6px 24px rgba(20,115,230,0.08), 0 1.5px 8px rgba(0,0,0,0.04);
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		transition: box-shadow 0.2s, transform 0.2s;
+		position: relative;
+		background-clip: padding-box;
+	}
+	.planCardBasic {
+		background: linear-gradient(135deg, #e9f2ff 80%, #f6fbff 100%);
+		border: 2px solid #c7e0fa;
+	}
+	.planCardPremium {
+		background: linear-gradient(135deg, #fff7ec 80%, #fffbe6 100%);
+		border: 2px solid #ffd8a8;
+	}
+	.planCardUltimate {
+		background: linear-gradient(135deg, #e6ffe6 80%, #f6fff6 100%);
+		border: 2px solid #a8ffd8;
+	}
+	.planCardBasic:hover, .planCardPremium:hover, .planCardUltimate:hover {
+		box-shadow: 0 12px 32px rgba(20,115,230,0.14), 0 3px 16px rgba(0,0,0,0.08);
+		transform: translateY(-2px) scale(1.03);
+		z-index: 2;
+	}
+	.cardHeader {
+		font-weight: 700;
+		margin-bottom: 12px;
+		font-size: 22px;
+	}
+	.price {
+		font-size: 2rem;
+		font-weight: 700;
+		margin-bottom: 8px;
+		color: #222;
+	}
+	.perMonth {
+		font-size: 1rem;
+		color: #888;
+		margin-left: 2px;
+	}
+	.primaryBtn {
+		background: #1473e6;
+		color: #fff;
+		border: none;
+		padding: 10px 0;
+		border-radius: 8px;
+		cursor: pointer;
+		font-size: 1.1rem;
+		width: 90%;
+		margin-bottom: 16px;
+		margin-top: 4px;
+		box-shadow: 0 2px 8px rgba(20,115,230,0.08);
+		transition: background 0.2s;
+	}
+	.primaryBtn:hover {
+		background: #0f63c9;
+	}
+	.disabledBtn {
+		background: #e0e0e0;
+		color: #aaa;
+		border: none;
+		padding: 10px 0;
+		border-radius: 8px;
+		font-size: 1.1rem;
+		width: 90%;
+		margin-bottom: 16px;
+		margin-top: 4px;
+		cursor: not-allowed;
+	}
+	.planCardBasic ul, .planCardPremium ul, .planCardUltimate ul {
+		margin: 0;
+		padding-left: 0;
+		font-size: 15px;
+		text-align: left;
+		list-style: none;
+	}
+	.planCardBasic ul li, .planCardPremium ul li, .planCardUltimate ul li {
+		margin-bottom: 8px;
+		position: relative;
+		padding-left: 22px;
+	}
+	.planCardBasic ul li::before, .planCardPremium ul li::before, .planCardUltimate ul li::before {
+		content: '\2713';
+		position: absolute;
+		left: 0;
+		color: #1473e6;
+		font-size: 1rem;
+		top: 0;
+	}
+	.planCardBasic ul li::before, .planCardPremium ul li::before, .planCardUltimate ul li::before {
+		content: '\2713';
+		position: absolute;
+		left: 0;
+		color: #1473e6;
+		font-size: 1rem;
+		top: 0;
+	}
+}
