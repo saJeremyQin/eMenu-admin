@@ -1,7 +1,17 @@
 import { createSlice, createAsyncThunk, createSelector } from '@reduxjs/toolkit';
 import { generateClient } from 'aws-amplify/api';
 
-const client = generateClient();
+// lazy API client so tests can inject a mock via `setApiClient`.
+let __apiClient = null;
+export function setApiClient(client) {
+  __apiClient = client;
+}
+function getApiClient() {
+  if (!__apiClient) {
+    __apiClient = generateClient();
+  }
+  return __apiClient;
+}
 
 export const fetchRestaurant = createAsyncThunk(
   'restaurant/fetchRestaurant',
@@ -20,7 +30,7 @@ export const fetchRestaurant = createAsyncThunk(
           }
         }
       `;
-      const resp = await client.graphql({ query });
+  const resp = await getApiClient().graphql({ query });
       return resp?.data?.getRestaurant || null;
     } catch (e) {
       return thunkAPI.rejectWithValue(e.message || 'Failed to fetch restaurant');

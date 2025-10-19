@@ -15,30 +15,31 @@
   "dependencies": {
     "@aws-amplify/ui-react": "^6.11.2",
     "@aws-sdk/client-s3": "^3.901.0",
+    "@reduxjs/toolkit": "^1.9.5",
     "aws-amplify": "^6.15.0",
     "aws-sdk": "^2.1692.0",
     "normalize.css": "^8.0.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "react-router-dom": "^7.6.2",
-    "@reduxjs/toolkit": "^1.9.5",
     "react-redux": "^8.1.1",
+    "react-router-dom": "^7.6.2",
     "uuid": "^13.0.0"
   },
   "devDependencies": {
-    "vitest": "^1.0.0",
-    "@testing-library/react": "^14.0.0",
+    "@eslint/js": "^9.37.0",
     "@testing-library/jest-dom": "^6.0.0",
-    "msw": "^1.2.3",
-  "@eslint/js": "^9.37.0",
-  "@types/react": "^18.2.0",
-  "@types/react-dom": "^18.2.0",
+    "@testing-library/react": "^14.0.0",
+    "@types/react": "^18.2.0",
+    "@types/react-dom": "^18.2.0",
     "@vitejs/plugin-react": "^4.4.1",
-  "eslint": "^9.37.0",
+    "eslint": "^9.37.0",
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-react-refresh": "^0.4.19",
     "globals": "^16.0.0",
+    "jsdom": "^27.0.1",
+    "msw": "^1.2.3",
     "sass": "^1.89.2",
-    "vite": "^7.1.10"
+    "vite": "^7.1.10",
+    "vitest": "^1.0.0"
   }
 }
