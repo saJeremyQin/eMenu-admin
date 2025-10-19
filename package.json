@@ -6,6 +6,9 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "test": "vitest",
+    "test:run": "vitest run",
+    "test:coverage": "vitest run --coverage",
     "lint": "eslint .",
     "preview": "vite preview"
   },
@@ -23,9 +26,13 @@
     "uuid": "^13.0.0"
   },
   "devDependencies": {
+    "vitest": "^1.0.0",
+    "@testing-library/react": "^14.0.0",
+    "@testing-library/jest-dom": "^6.0.0",
+    "msw": "^1.2.3",
   "@eslint/js": "^9.37.0",
-    "@types/react": "^19.1.2",
-    "@types/react-dom": "^19.1.2",
+  "@types/react": "^18.2.0",
+  "@types/react-dom": "^18.2.0",
     "@vitejs/plugin-react": "^4.4.1",
   "eslint": "^9.37.0",
     "eslint-plugin-react-hooks": "^5.2.0",
