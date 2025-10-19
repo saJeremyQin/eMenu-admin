@@ -2,7 +2,17 @@ import { createSlice, createAsyncThunk, createSelector } from '@reduxjs/toolkit'
 import { generateClient } from 'aws-amplify/api';
 import { getCurrentUser } from 'aws-amplify/auth';
 
-const client = generateClient();
+// lazy API client so tests can inject a mock via `setApiClient`.
+let __apiClient = null;
+export function setApiClient(client) {
+  __apiClient = client;
+}
+function getApiClient() {
+  if (!__apiClient) {
+    __apiClient = generateClient();
+  }
+  return __apiClient;
+}
 
 export const fetchUser = createAsyncThunk(
   'user/fetchUser',
@@ -22,7 +32,7 @@ export const fetchUser = createAsyncThunk(
             }
           }
         `;
-        const resp = await client.graphql({ query, variables: { cid: cognitoSub } });
+  const resp = await getApiClient().graphql({ query, variables: { cid: cognitoSub } });
         return resp?.data?.getUserByCognito || null;
     } catch (e) {
       return thunkAPI.rejectWithValue(e.message || 'Failed to fetch user');

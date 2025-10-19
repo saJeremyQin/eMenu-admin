@@ -1,17 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import userReducer, { setUser, clearUser, updateUserField, fetchUser } from '../userSlice';
 
-// Mock aws-amplify modules
-vi.mock('aws-amplify/api', () => ({
-  generateClient: () => ({
-    graphql: vi.fn(),
-  }),
-}));
+// Mock only the auth module; we'll inject a mock API client via setApiClient.
 vi.mock('aws-amplify/auth', () => ({
   getCurrentUser: vi.fn(),
 }));
 
-import { generateClient } from 'aws-amplify/api';
+import userReducer, { setUser, clearUser, updateUserField, fetchUser, setApiClient } from '../userSlice';
 import { getCurrentUser } from 'aws-amplify/auth';
 
 describe('userSlice reducers', () => {
@@ -47,8 +41,9 @@ describe('fetchUser thunk', () => {
   });
 
   it('fulfilled when getCurrentUser and graphql return user', async () => {
-    const mockClient = generateClient();
-    mockClient.graphql.mockResolvedValue({ data: { getUserByCognito: { id: 'u1', cognitoId: 'c1', email: 'a@b.com', role: 'boss' } } });
+    // inject a mock API client
+    const mockClient = { graphql: vi.fn().mockResolvedValue({ data: { getUserByCognito: { id: 'u1', cognitoId: 'c1', email: 'a@b.com', role: 'boss' } } }) };
+    setApiClient(mockClient);
     getCurrentUser.mockResolvedValue({ userId: 'c1' });
 
     const dispatch = vi.fn();
