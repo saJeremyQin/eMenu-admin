@@ -62,3 +62,55 @@ describe('fetchUser thunk', () => {
     expect(result.type).toBe('user/fetchUser/fulfilled');
   });
 });
+
+
+describe('reducers edge cases', () => {
+  afterEach(() => {
+    // avoid test pollution if setApiClient used elsewhere
+    try { setApiClient(null); } catch (e) {}
+    vi.resetAllMocks();
+  });
+
+  it('setUser with empty payload keeps existing fields and still marks authenticated', () => {
+    const state = {
+      id: 'u1', cognitoId: 'c1', email: 'a@b.com', role: 'boss', restaurantId: 'r1', isAuthenticated: false
+    };
+    const next = userReducer(state, setUser());
+    expect(next.id).toBe('u1');
+    expect(next.email).toBe('a@b.com');
+    expect(next.isAuthenticated).toBe(true);
+  });
+
+  it('setUser with partial payload updates only provided fields', () => {
+    const state = { id: 'u1', email: 'old@example.com', role: 'user', isAuthenticated: false };
+    const next = userReducer(state, setUser({ email: 'new@example.com' }));
+    expect(next.id).toBe('u1');
+    expect(next.email).toBe('new@example.com');
+    expect(next.role).toBe('user');
+    expect(next.isAuthenticated).toBe(true);
+  });
+
+  it('handles pending -> fulfilled flow', () => {
+    let state = userReducer(undefined, { type: '@@INIT' });
+    state = userReducer(state, { type: fetchUser.pending.type });
+    expect(state.loading).toBe(true);
+    state = userReducer(state, { type: fetchUser.fulfilled.type, payload: { id: 'u1', cognitoId: 'c1', email: 'a@b.com', role: 'boss' } });
+    expect(state.loading).toBe(false);
+    expect(state.id).toBe('u1');
+    expect(state.isAuthenticated).toBe(true);
+  });
+
+  it('handles pending -> rejected with payload or error.message', () => {
+    let state = userReducer(undefined, { type: '@@INIT' });
+    state = userReducer(state, { type: fetchUser.pending.type });
+    state = userReducer(state, { type: fetchUser.rejected.type, payload: 'network-failure', error: {} });
+    expect(state.loading).toBe(false);
+    expect(state.error).toBe('network-failure');
+
+    state = userReducer(undefined, { type: '@@INIT' });
+    state = userReducer(state, { type: fetchUser.pending.type });
+    state = userReducer(state, { type: fetchUser.rejected.type, payload: undefined, error: { message: 'timeout' } });
+    expect(state.loading).toBe(false);
+    expect(state.error).toBe('timeout');
+  });
+});

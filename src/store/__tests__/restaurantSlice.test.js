@@ -66,3 +66,55 @@ describe('fetchRestaurant thunk', () => {
     expect(result.payload).toBe('network');
   });
 });
+
+describe('reducers edge cases', () => {
+  afterEach(() => {
+    // reset injected client to avoid test pollution
+    try { setApiClient(null); } catch (e) {}
+    vi.resetAllMocks();
+  });
+
+  it('setRestaurant with empty payload keeps existing fields', () => {
+    const state = { id: 'r1', name: 'R', address: 'A', loaded: true };
+    const next = restaurantReducer(state, setRestaurant());
+    expect(next.id).toBe('r1');
+    expect(next.name).toBe('R');
+    // setRestaurant with undefined payload should not clear fields
+    expect(next.loaded).toBe(true);
+  });
+
+  it('setRestaurant with partial payload updates only provided fields', () => {
+    const state = { id: 'r1', name: 'Old', address: 'OldAddr' };
+    const next = restaurantReducer(state, setRestaurant({ name: 'New' }));
+    expect(next.id).toBe('r1');
+    expect(next.name).toBe('New');
+    expect(next.address).toBe('OldAddr');
+  });
+
+  it('handles pending -> fulfilled flow', () => {
+    let state = restaurantReducer(undefined, { type: '@@INIT' });
+    state = restaurantReducer(state, { type: fetchRestaurant.pending.type });
+    expect(state.loading).toBe(true);
+
+    state = restaurantReducer(state, { type: fetchRestaurant.fulfilled.type, payload: { id: 'r1', name: 'R' } });
+    expect(state.loading).toBe(false);
+    expect(state.loaded).toBe(true);
+    expect(state.id).toBe('r1');
+  });
+
+  it('handles pending -> rejected flow (payload or error.message)', () => {
+    let state = restaurantReducer(undefined, { type: '@@INIT' });
+    state = restaurantReducer(state, { type: fetchRestaurant.pending.type });
+    state = restaurantReducer(state, { type: fetchRestaurant.rejected.type, payload: 'no-network', error: {} });
+    expect(state.loading).toBe(false);
+    expect(state.loaded).toBe(true);
+    expect(state.error).toBe('no-network');
+
+    state = restaurantReducer(undefined, { type: '@@INIT' });
+    state = restaurantReducer(state, { type: fetchRestaurant.pending.type });
+    state = restaurantReducer(state, { type: fetchRestaurant.rejected.type, payload: undefined, error: { message: 'timeout' } });
+    expect(state.loading).toBe(false);
+    expect(state.loaded).toBe(true);
+    expect(state.error).toBe('timeout');
+  });
+});
