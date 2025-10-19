@@ -40,11 +40,6 @@ const AuthLayoutManager = () => {
     const init = async () => {
       try {
         const user = await dispatch(fetchUser()).unwrap();
-        // debug: print user and store state
-        console.log('fetchUser result:', user);
-        if (typeof window !== 'undefined' && window.__APP_STORE__) {
-          console.log('store.user after fetchUser:', window.__APP_STORE__.getState().user);
-        }
       } catch (e) {
         // ignore
       }
