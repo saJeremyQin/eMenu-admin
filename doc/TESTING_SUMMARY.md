@@ -136,5 +136,3 @@ await userEvent.click(restaurantLink);
 2. Consider adding `afterEach` or global setup to always call `setApiClient(null)` to avoid cross-test pollution.
 3. Optionally add MSW handlers if you prefer to mock the network layer rather than injecting the client; MSW is useful if you want to test network error variants centrally.
 4. Expand integration tests to cover additional flows: permission mismatch, error handling, form submit for CreateRestaurant.
-
-

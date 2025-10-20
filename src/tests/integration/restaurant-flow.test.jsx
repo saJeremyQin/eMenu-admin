@@ -29,10 +29,10 @@ vi.mock('aws-amplify/api', () => ({
 }));
 
 // Import app and store - adjust paths if your project exports differently
-import App from '../../../App';
-import { store } from '../../../store/store';
-import { setApiClient as setRestaurantApiClient } from '../../../store/restaurantSlice';
-import { setApiClient as setUserApiClient } from '../../../store/userSlice';
+import App from '../../App';
+import { store } from '../../store/store';
+import { setApiClient as setRestaurantApiClient } from '../../store/restaurantSlice';
+import { setApiClient as setUserApiClient } from '../../store/userSlice';
 
 describe('Restaurant navigation integration', () => {
   beforeEach(() => {
