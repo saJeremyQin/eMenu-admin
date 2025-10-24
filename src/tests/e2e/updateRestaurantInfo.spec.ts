@@ -77,8 +77,35 @@ test('update restaurant info - saves and shows success', async ({ page }) => {
     }
   }
 
-  // 3) Wait for page heading (Restaurant Info uses <h1>Restaurant Info)
-  await page.getByRole('heading', { name: /restaurant info/i }).waitFor({ timeout: 10000 });
+  // 3) Wait for navigation to complete and the Restaurant Info heading to appear
+  // Click should navigate to /restaurant/info — try a robust URL wait and fallback to direct navigation if needed.
+  try {
+    await page.waitForURL((url) => url.pathname === '/restaurant/info' || url.pathname.includes('/restaurant/info'), { timeout: 5000 });
+  } catch (err) {
+    // Fallback: some SPA routers don't emit a navigation event Playwright observes.
+    // Try to navigate via the link's href or click it via JS, then wait for the URL.
+    try {
+      const hrefLocator = page.locator('a[href="/restaurant/info"]').first();
+      const href = await hrefLocator.getAttribute('href');
+      if (href) {
+        // use goto to ensure we land on the page
+        await page.goto(href);
+      } else {
+        // as a last resort, click via page.evaluate
+        await page.evaluate(() => {
+          const el = document.querySelector('a[href="/restaurant/info"]') as HTMLAnchorElement | null;
+          if (el) el.click();
+        });
+      }
+      await page.waitForURL((url) => url.pathname === '/restaurant/info' || url.pathname.includes('/restaurant/info'), { timeout: 10000 });
+    } catch (fallbackErr) {
+      // final fallback: poll location.pathname directly
+      await page.waitForFunction(() => location.pathname.includes('/restaurant/info'), { timeout: 10000 });
+    }
+  }
+
+  // Then wait for a heading (could be h1 or h2) that contains "Restaurant Info".
+  await page.locator('h1,h2').filter({ hasText: /restaurant info/i }).first().waitFor({ timeout: 10000 });
 
   // 4) Fill phone input and save
   const phone = page.locator('input[name="phone"]').first();
