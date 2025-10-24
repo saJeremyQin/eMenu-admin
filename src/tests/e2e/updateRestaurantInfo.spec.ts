@@ -2,10 +2,12 @@ import { test, expect } from '@playwright/test';
 
 // Try to load .env.e2e for convenience during local runs (optional)
 try {
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  const dotenv = require('dotenv');
-  const path = require('path');
-  dotenv.config({ path: path.join(process.cwd(), '.env.e2e') });
+  // Use dynamic ESM import (top-level await is supported in ESM) so dotenv is optional.
+  const dotenv = await import('dotenv');
+  const path = await import('path');
+  if (dotenv && typeof dotenv.config === 'function') {
+    dotenv.config({ path: path.join(process.cwd(), '.env.e2e') });
+  }
 } catch (e) {
   // ignore if dotenv not installed
 }
@@ -116,5 +118,5 @@ test('update restaurant info - saves and shows success', async ({ page }) => {
   await save.click();
 
   // 5) Assert the value updated in the form (after redux update the form re-inits)
-  await expect(phone).toHaveValue('999-887-7777', { timeout: 5000 });
+  await expect(phone).toHaveValue('999-888-7777', { timeout: 5000 });
 });

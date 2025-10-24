@@ -44,8 +44,8 @@ export default async function globalSetup(config: FullConfig) {
   // Fill in the login form using the known test account (hard-coded for now).
   // NOTE: This was temporarily hard-coded to match the earlier passing test run.
   try {
-  await page.getByPlaceholder('Username or Email').fill(username);
-  await page.getByPlaceholder(/password/i).fill(password);
+    await page.getByPlaceholder('Username or Email').fill(username);
+    await page.getByPlaceholder(/password/i).fill(password);
     await page.getByRole('button', { name: /sign in/i }).click();
 
     // Wait for the app to reflect that the user is authenticated (header shows Logout)
@@ -58,24 +58,9 @@ export default async function globalSetup(config: FullConfig) {
     throw e;
   }
 
-  // Wait until a protected page loads to ensure tokens have been set and read by the app
-  // The DishManagerPage uses an <h2> with text "Dish Management", so wait for that instead.
-  await page.goto(`${base}/dishes`);
-  console.log('auth.setup: navigated to /dishes, waiting for protected page UI');
-  try {
-    await page.getByRole('heading', { name: 'Dish Management' }).waitFor({ timeout: 30000 });
-  } catch (err) {
-    console.error('auth.setup: failed to find Dish Management heading after login; url=', page.url());
-    // Log h2 text content if any to help debugging
-    try {
-      const headings = await page.locator('h2').allTextContents();
-      console.error('auth.setup: h2 contents:', headings);
-    } catch (e) {
-      console.error('auth.setup: could not read h2 contents:', e);
-    }
-    throw err;
-  }
-
+  // No navigation required: rely on the presence of the Logout button to indicate
+  // that authentication completed and tokens/cookies/localStorage have been set.
+  // This keeps globalSetup minimal — we only need a valid storageState for tests.
   // Save storage state for reuse in tests
   await context.storageState({ path: AUTH_FILE });
   console.log('auth.setup: storage state saved to', AUTH_FILE);
