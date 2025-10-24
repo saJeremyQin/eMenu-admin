@@ -54,8 +54,8 @@ describe('Restaurant navigation integration', () => {
         return { data: {} };
       }),
     };
-  setRestaurantApiClient(mockClient);
-  setUserApiClient(mockClient);
+    setRestaurantApiClient(mockClient);
+    setUserApiClient(mockClient);
 
     // App already includes a BrowserRouter; avoid wrapping another Router.
     window.history.pushState({}, 'Test page', '/');

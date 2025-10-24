@@ -29,3 +29,7 @@ dist-ssr
 *.tfstate
 *.tfstate.backup
 .terraform.lock.hcl
+
+# Playwright / test artifacts
+test-results/
+playwright-report/
