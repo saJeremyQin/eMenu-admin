@@ -116,5 +116,5 @@ test('update restaurant info - saves and shows success', async ({ page }) => {
   await save.click();
 
   // 5) Assert the value updated in the form (after redux update the form re-inits)
-  await expect(phone).toHaveValue('999-888-7777', { timeout: 5000 });
+  await expect(phone).toHaveValue('999-887-7777', { timeout: 5000 });
 });

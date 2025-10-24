@@ -12,6 +12,27 @@ export default async function globalSetup(config: FullConfig) {
   // Ensure auth dir exists
   fs.mkdirSync(AUTH_DIR, { recursive: true });
 
+  // Try to load .env.e2e via dotenv if available for local convenience.
+  // Use dynamic import so this file stays ESM-compatible and dotenv remains optional.
+  try {
+    const dotenv = await import('dotenv');
+    if (dotenv && typeof dotenv.config === 'function') {
+      dotenv.config({ path: path.join(process.cwd(), '.env.e2e') });
+      console.log('auth.setup: loaded .env.e2e via dotenv (if present)');
+    }
+  } catch (e) {
+    // dotenv not installed or failed to load — it's optional
+  }
+
+  const username = process.env.E2E_USERNAME || process.env.E2E_USER || process.env.TEST_E2E_USERNAME;
+  const password = process.env.E2E_PASSWORD || process.env.E2E_PASS || process.env.TEST_E2E_PASSWORD;
+
+  if (!username || !password) {
+    throw new Error(
+      'E2E credentials missing. Set E2E_USERNAME and E2E_PASSWORD in the environment or create a local .env.e2e file (gitignored).'
+    );
+  }
+
   const browser = await chromium.launch();
   const context = await browser.newContext();
   const page = await context.newPage();
@@ -23,8 +44,8 @@ export default async function globalSetup(config: FullConfig) {
   // Fill in the login form using the known test account (hard-coded for now).
   // NOTE: This was temporarily hard-coded to match the earlier passing test run.
   try {
-    await page.getByPlaceholder('Username or Email').fill('jeremyqinsa@gmail.com');
-    await page.getByPlaceholder(/password/i).fill('600186Qd!');
+  await page.getByPlaceholder('Username or Email').fill(username);
+  await page.getByPlaceholder(/password/i).fill(password);
     await page.getByRole('button', { name: /sign in/i }).click();
 
     // Wait for the app to reflect that the user is authenticated (header shows Logout)
