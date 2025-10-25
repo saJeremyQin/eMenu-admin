@@ -2,7 +2,6 @@ import React from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { Provider } from 'react-redux';
-import { MemoryRouter } from 'react-router-dom';
 import { vi } from 'vitest';
 
 // Mock amplify auth getCurrentUser
@@ -12,7 +11,6 @@ vi.mock('aws-amplify/auth', () => ({
 
 // Mock Amplify UI to avoid internal BrowserRouter/Router and Amplify configuration errors
 vi.mock('@aws-amplify/ui-react', () => {
-  const React = require('react');
   return {
     // Authenticator with Provider used in App
     Authenticator: {
@@ -67,7 +65,7 @@ describe('Restaurant navigation integration', () => {
 
     // Click nav -> Restaurant. Adjust selectors to match your UI.
     // Try a few common roles/labels so tests are resilient.
-  // wait for the Restaurant Info link to appear in the DOM (allow hidden in case submenu is collapsed)
+    // wait for the Restaurant Info link to appear in the DOM (allow hidden in case submenu is collapsed)
     const restaurantLink = await screen.findByRole('link', { name: /restaurant info/i, hidden: true });
     await userEvent.click(restaurantLink);
 
@@ -87,8 +85,8 @@ describe('Restaurant navigation integration', () => {
         return { data: {} };
       }),
     };
-  setRestaurantApiClient(mockClient);
-  setUserApiClient(mockClient);
+    setRestaurantApiClient(mockClient);
+    setUserApiClient(mockClient);
 
     window.history.pushState({}, 'Test page', '/');
     render(
@@ -97,7 +95,7 @@ describe('Restaurant navigation integration', () => {
       </Provider>
     );
 
-  // wait for the Restaurant Info link to appear in the DOM (allow hidden in case submenu is collapsed)
+    // wait for the Restaurant Info link to appear in the DOM (allow hidden in case submenu is collapsed)
     const restaurantLink = await screen.findByRole('link', { name: /restaurant info/i, hidden: true });
     await userEvent.click(restaurantLink);
 
