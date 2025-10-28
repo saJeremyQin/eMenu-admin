@@ -4,7 +4,7 @@ import userEvent from '@testing-library/user-event';
 import { Provider } from 'react-redux';
 import { vi } from 'vitest';
 
-// Mock amplify auth getCurrentUser
+// Mock amplify auth getCurrentUser，try test automation
 vi.mock('aws-amplify/auth', () => ({
   getCurrentUser: vi.fn(),
 }));
