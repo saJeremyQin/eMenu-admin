@@ -30,7 +30,7 @@ export const fetchRestaurant = createAsyncThunk(
           }
         }
       `;
-  const resp = await getApiClient().graphql({ query });
+      const resp = await getApiClient().graphql({ query });
       return resp?.data?.getRestaurant || null;
     } catch (e) {
       return thunkAPI.rejectWithValue(e.message || 'Failed to fetch restaurant');
