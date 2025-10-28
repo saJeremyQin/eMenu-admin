@@ -41,10 +41,10 @@
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-react-refresh": "^0.4.19",
     "globals": "^16.0.0",
-    "jsdom": "^27.0.1",
+    "jsdom": "^24.1.0",
     "msw": "^1.2.3",
     "sass": "^1.89.2",
     "vite": "^7.1.10",
-    "vitest": "^1.0.0"
+    "vitest": "^1.6.1"
   }
 }
