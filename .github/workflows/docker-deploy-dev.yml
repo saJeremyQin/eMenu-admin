@@ -1,11 +1,18 @@
 name: Build and Deploy to ECS Dev
 on:
-  workflow_run:  # 允许通过工作流运行触发
-    workflows: ["CI Test"]
-    types:
-      - completed
-  workflow_dispatch:
-
+  # workflow_run:  # 允许通过工作流运行触发
+  #   workflows: ["CI Test"]
+  #   types:
+  #     - completed
+  # workflow_dispatch:
+  push:
+    branches: [testautomation, copilot]
+    paths:
+      - "src/**"
+      - "public/**"
+      - "package.json"
+      - "Dockerfile"
+        
 jobs: 
   build-and-deploy:
     runs-on: ubuntu-latest
