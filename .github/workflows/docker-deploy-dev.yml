@@ -1,15 +1,9 @@
 name: Build and Deploy to ECS Dev
-
 on:
   workflow_run:  # 允许通过工作流运行触发
     workflows: ["CI Test"]
     types:
       - completed
-  
-    branches: 
-      - dev
-      - testautomation
-      - master
   #   paths:
   #     - 'src/**'
   #     - 'public/**'
