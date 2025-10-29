@@ -4,13 +4,7 @@ on:
     workflows: ["CI Test"]
     types:
       - completed
-  #   paths:
-  #     - 'src/**'
-  #     - 'public/**'
-  #     - 'package*.json'
-  #     - 'Dockerfile'
-  #     - '.dockerignore'
-  # workflow_dispatch:  # 允许手动触发
+  workflow_dispatch:
 
 jobs: 
   build-and-deploy:
