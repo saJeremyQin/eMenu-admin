@@ -31,7 +31,7 @@ jobs:
       ECS_CLUSTER: emenu-admin-dev-cluster
       ECS_SERVICE: emenu-admin-dev-service
 
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    if: ${{ github.event.workflow_run.conclusion == 'Success' }}
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4  # 更新版本
