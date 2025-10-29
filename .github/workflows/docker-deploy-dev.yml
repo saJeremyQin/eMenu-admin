@@ -1,17 +1,17 @@
 name: Build and Deploy to ECS Dev
 on:
-  # workflow_run:  # 允许通过工作流运行触发
-  #   workflows: ["CI Test"]
-  #   types:
-  #     - completed
-  # workflow_dispatch:
-  push:
-    branches: [testautomation, copilot]
-    paths:
-      - "src/**"
-      - "public/**"
-      - "package.json"
-      - "Dockerfile"
+  workflow_run:  # 允许通过工作流运行触发
+    workflows: ["CI Test"]
+    types:
+      - completed
+  workflow_dispatch:
+  # push:
+  #   branches: [testautomation, copilot]
+  #   paths:
+  #     - "src/**"
+  #     - "public/**"
+  #     - "package.json"
+  #     - "Dockerfile"
         
 jobs: 
   build-and-deploy:
@@ -29,6 +29,7 @@ jobs:
       ECS_CLUSTER: emenu-admin-dev-cluster
       ECS_SERVICE: emenu-admin-dev-service
 
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4  # 更新版本

@@ -2,9 +2,9 @@ name: CI Test
 
 on:
   push:
-    branches: [copilot]
+    branches: [testautomation]
   pull_request:
-    branches: [copilot]
+    branches: [testautomation]
 
 jobs:
   test:
