@@ -5,6 +5,7 @@ import { Provider } from 'react-redux';
 import { vi } from 'vitest';
 
 // Mock amplify auth getCurrentUser，try test automation
+// update vitest version
 vi.mock('aws-amplify/auth', () => ({
   getCurrentUser: vi.fn(),
 }));
