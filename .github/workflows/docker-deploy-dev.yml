@@ -1,38 +1,58 @@
-name: Build and Deploy to ECS Dev
+name: CI Test and Deploy
 on:
-  workflow_run:  # 允许通过工作流运行触发
-    workflows: ["CI Test"]
-    types:
-      - completed
+  push:
+    branches: [testautomation, dev, master]
+  pull_request:
+    branches: [testautomation, dev, master]
+    paths:
+      - "src/**"
+      - "public/**"
+      - "package.json"
+      - "Dockerfile"
   workflow_dispatch:
-  # push:
-  #   branches: [testautomation, copilot]
-  #   paths:
-  #     - "src/**"
-  #     - "public/**"
-  #     - "package.json"
-  #     - "Dockerfile"
+
+permissions:
+  contents: read
+  id-token: write
+    
+env:
+  # 开发环境特定的配置
+  ENVIRONMENT: dev
+  ECR_REPOSITORY: emenu/emenu-admin-dev
+  ECR_REGISTRY: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.ap-southeast-2.amazonaws.com
+  AWS_REGION: ap-southeast-2
+  ECS_CLUSTER: emenu-admin-dev-cluster
+  ECS_SERVICE: emenu-admin-dev-service
         
 jobs: 
   build-and-deploy:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      id-token: write
-    
-    env:
-      # 开发环境特定的配置
-      ENVIRONMENT: dev
-      ECR_REPOSITORY: emenu/emenu-admin-dev
-      ECR_REGISTRY: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.ap-southeast-2.amazonaws.com
-      AWS_REGION: ap-southeast-2
-      ECS_CLUSTER: emenu-admin-dev-cluster
-      ECS_SERVICE: emenu-admin-dev-service
-
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4  # 更新版本
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install
+
+      - name: Run unit & integration tests
+        run: npm run test:run
+
+      - name: Run coverage
+        run: npm run test:coverage
+
+      - name: Run E2E tests (authenticated)
+        env:
+          E2E_USERNAME: ${{ secrets.E2E_USERNAME }}
+          E2E_PASSWORD: ${{ secrets.E2E_PASSWORD }}
+        run: npm run test:e2e:auth
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4  # 更新版本
@@ -46,7 +66,7 @@ jobs:
 
       - name: Build and tag docker image
         run: |
-          # 使用简短的SHA作为标签，更易读
+          # Shorter tags for easier reading
           IMAGE_TAG="${GITHUB_SHA::10}"
           FULL_IMAGE_URI="$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
           
@@ -56,10 +76,10 @@ jobs:
           # Build docker image
           docker build -t "$FULL_IMAGE_URI" .
           
-          # 只标记 latest，ECS 任务定义使用这个
+          # Only tag latest, used by ECS task definition
           docker tag "$FULL_IMAGE_URI" "$ECR_REGISTRY/$ECR_REPOSITORY:latest"
           
-          # 保存变量供后续步骤使用
+          # Save variables for later steps
           echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_ENV
           echo "FULL_IMAGE_URI=$FULL_IMAGE_URI" >> $GITHUB_ENV
 
@@ -70,7 +90,6 @@ jobs:
           docker push "$ECR_REGISTRY/$ECR_REPOSITORY:latest"
           echo "✅ Successfully pushed all tags"
           
-          # 等待一下确保镜像完全可用
           echo "⏱️  Waiting for ECR to propagate images..."
           sleep 10
 
