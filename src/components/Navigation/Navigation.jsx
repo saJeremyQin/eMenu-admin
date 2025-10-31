@@ -14,7 +14,9 @@ const Navigation = () => {
       <ul className={styles.navList}>
         <li><Link to="/" className={isActive('/') ? styles.active : ''}><span aria-hidden="true" role="img">🏠</span>Home</Link></li>
         <li><Link to="/dishes" className={isActive('/dishes') ? styles.active : ''}><span aria-hidden="true" role="img">🍲</span>Dishes</Link></li>
-        <li><Link to="/menu-items" className={isActive('/menu-items') ? styles.active : ''}><span aria-hidden="true" role="img">🍽️</span>Orders</Link></li>
+        <li><Link to="/orders" className={isActive('/orders') ? styles.active : ''}><span aria-hidden="true" role="img">🍽️</span>Orders</Link></li>
+        <li><Link to="/waiters" className={isActive('/waiters') ? styles.active : ''}><span aria-hidden="true" role="img">🍽️</span>Waiters</Link></li>
+
         <li className={styles.submenu}>
           <span className={styles.submenuTitle}><span aria-hidden="true" role="img">🏪</span>Restaurant</span>
           <ul>

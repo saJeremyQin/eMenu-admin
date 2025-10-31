@@ -14,6 +14,7 @@ import LoadingOverlay from './components/LoadingOverlay/LoadingOverlay';
 import { useNavigate } from 'react-router-dom';
 
 import HomePage from './pages/HomePage/HomePage';
+import WaitersPage from './pages/WaitersPage/WaitersPage';
 import DishManagerPage from './pages/DishManagerPage/DishManagerPage';
 import CreateRestaurant from './pages/CreateRestaurant/CreateRestaurant';
 import RestaurantInfo from './pages/RestaurantInfo/RestaurantInfo';
@@ -83,6 +84,7 @@ const AuthLayoutManager = () => {
           <Routes>
             <Route path="/" element={<HomePage />} />
             <Route path="/dishes" element={<DishManagerPage />} />
+            <Route path="/waiters" element={<WaitersPage />} />
 
             {/* Restaurant routes */}
             {/* Only allow create when user has NO restaurant */}

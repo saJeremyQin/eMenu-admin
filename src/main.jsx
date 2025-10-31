@@ -17,6 +17,7 @@ import './assets/styles/main.scss'; // <-- 关键修改
 
 // 配置 Amplify
 Amplify.configure(awsOutputs);
+console.log('Amplify configured')
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
