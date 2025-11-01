@@ -6,7 +6,7 @@ import styles from './LayoutLogin.module.scss'; // 导入模块化样式
 // 导入 Emenu Logo 图片
 import emenuLogo from '../../assets/eMenu-logo.png'; 
 
-const LayoutLogin = () => {
+const LayoutLogin = (props) => {
   const formFields = {
     signUp: {
       username: { // Username is the primary identifier for the User Pool, implicitly required
@@ -53,6 +53,7 @@ const LayoutLogin = () => {
         <Authenticator formFields={formFields}>
           {/* Authenticator 的子内容 */}
         </Authenticator>
+        {props.children}
       </div>
     </div>
   );

@@ -6,6 +6,7 @@ import '@aws-amplify/ui-react/styles.css'; // Amplify UI 的基础样式
 
 import LayoutLogin from './components/LayoutLogin/LayoutLogin';
 import LayoutStandard from './components/LayoutStandard/LayoutStandard'; // 原 Layout 重命名
+import LayoutPublic from './components/LayoutPublic/LayoutPublic';
 import { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchUser, selectUserLoading } from './store/userSlice';
@@ -19,6 +20,7 @@ import DishManagerPage from './pages/DishManagerPage/DishManagerPage';
 import CreateRestaurant from './pages/CreateRestaurant/CreateRestaurant';
 import RestaurantInfo from './pages/RestaurantInfo/RestaurantInfo';
 import SubscriptionPlan from './pages/SubscriptionPlan/SubscriptionPlan';
+import WaiterRegister from './pages/WaiterRegister/WaiterRegister';
 import RestaurantGuard from './components/guards/RestaurantGuard';
 import NoRestaurantGuard from './components/guards/NoRestaurantGuard';
 
@@ -106,14 +108,24 @@ const AuthLayoutManager = () => {
         </LayoutStandard>
       ) : (
         // 未登录用户看到的布局
-        <LayoutLogin>
+        <>
           <Routes>
-            {/* 登录/注册页面通常是 /auth，但也可以是 / 或其他 */}
-            <Route path="/" element={<LayoutLogin />} /> {/* 确保根路径也显示登录布局 */}
-            <Route path="/auth" element={<LayoutLogin />} />
-            {/* 其他未认证可访问的公开页面 */}
+            {/* waiter-register 独立布局 */}
+            <Route path="/waiter-register" element={
+              <LayoutPublic>
+                <WaiterRegister />
+              </LayoutPublic>
+            } />
           </Routes>
-        </LayoutLogin>
+          <LayoutLogin>
+            <Routes>
+              {/* 登录/注册页面通常是 /auth，但也可以是 / 或其他 */}
+              <Route path="/" element={<LayoutLogin />} /> {/* 确保根路径也显示登录布局 */}
+              <Route path="/auth" element={<LayoutLogin />} />
+              {/* 其他未认证可访问的公开页面 */}
+            </Routes>
+          </LayoutLogin>
+        </>
       )}
     </>
   );
