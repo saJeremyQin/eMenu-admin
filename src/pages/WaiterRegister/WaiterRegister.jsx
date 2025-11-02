@@ -3,7 +3,10 @@ import { generateClient } from 'aws-amplify/api';
 import { useLocation, useNavigate } from 'react-router-dom';
 import styles from './WaiterRegister.module.scss';
 
-const client = generateClient();
+// Use API Key for unauthenticated registerWaiter mutation
+const client = generateClient({
+  authMode: 'apiKey'
+});
 
 function useQuery() {
   return new URLSearchParams(useLocation().search);

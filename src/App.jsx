@@ -108,24 +108,17 @@ const AuthLayoutManager = () => {
         </LayoutStandard>
       ) : (
         // 未登录用户看到的布局
-        <>
-          <Routes>
-            {/* waiter-register 独立布局 */}
-            <Route path="/waiter-register" element={
-              <LayoutPublic>
-                <WaiterRegister />
-              </LayoutPublic>
-            } />
-          </Routes>
-          <LayoutLogin>
-            <Routes>
-              {/* 登录/注册页面通常是 /auth，但也可以是 / 或其他 */}
-              <Route path="/" element={<LayoutLogin />} /> {/* 确保根路径也显示登录布局 */}
-              <Route path="/auth" element={<LayoutLogin />} />
-              {/* 其他未认证可访问的公开页面 */}
-            </Routes>
-          </LayoutLogin>
-        </>
+        <Routes>
+          {/* waiter-register 独立布局 */}
+          <Route path="/waiter-register" element={
+            <LayoutPublic>
+              <WaiterRegister />
+            </LayoutPublic>
+          } />
+          {/* 其它未认证可访问的公开页面 */}
+          <Route path="/" element={<LayoutLogin />} /> {/* 确保根路径也显示登录布局 */}
+          <Route path="/auth" element={<LayoutLogin />} />
+        </Routes>
       )}
     </>
   );

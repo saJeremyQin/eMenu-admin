@@ -17,6 +17,7 @@ const awsOutputs = {
       endpoint: 'https://h4pqvuqsw5dklkaexrf7ugesam.appsync-api.ap-southeast-2.amazonaws.com/graphql',
       region: 'ap-southeast-2',
       defaultAuthMode: 'userPool', // 或 'apiKey' 等
+      apiKey: 'da2-kzjdep4tsven7m6ovs5e746mp4', // API Key for unauthenticated access (e.g., registerWaiter)
     },
   },
   // Storage 配置已移除，因为文件上传现在通过 eMenu-backend 的 Lambda 函数处理
