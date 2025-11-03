@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { generateClient } from 'aws-amplify/api';
+import awsOutputs from '../../aws-config';
 import { useLocation, useNavigate } from 'react-router-dom';
 import styles from './WaiterRegister.module.scss';
 
@@ -22,6 +23,36 @@ const WaiterRegister = () => {
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
   const [successMsg, setSuccessMsg] = useState(null);
+
+  // Helper: parse backend error string -> { code, friendly }
+  const parseBackendError = (rawMsg) => {
+    if (!rawMsg) return { code: '', friendly: 'Registration failed' };
+    let code = '';
+    let friendly = rawMsg;
+    try {
+      const parsed = JSON.parse(rawMsg);
+      code = parsed?.code || '';
+      friendly = parsed?.message || rawMsg;
+    } catch {
+      // Backend returns errors in format "CODE: message"
+      code = rawMsg.split(':')[0];
+      friendly = rawMsg.includes(':') ? rawMsg.split(':').slice(1).join(':').trim() : rawMsg;
+    }
+    // map codes to UX messages
+    switch (code) {
+      case 'INVITE_TOKEN_EXPIRED':
+        return { code, friendly: 'This invite link has expired. Please ask your manager to send a new invitation.' };
+      case 'INVITE_TOKEN_INVALID_OR_USED':
+        return { code, friendly: 'This invite link is invalid or already used. Please ask your manager to send a new one.' };
+      case 'WAITER_ALREADY_ACTIVE':
+        return { code, friendly: 'You are already registered. Please sign in with your email and password.' };
+      default:
+        if (friendly.startsWith('Cannot register:')) {
+          return { code: 'VALIDATION', friendly };
+        }
+        return { code: code || 'UNKNOWN', friendly: friendly || 'Registration failed' };
+    }
+  };
 
   useEffect(() => {
     if (!token) {
@@ -49,32 +80,45 @@ const WaiterRegister = () => {
       mutation RegisterWaiter($token: String!, $password: String!) {
         registerWaiter(token: $token, password: $password) {
           id
+          cognitoId
           email
+          role
           status
           createdAt
         }
       }
     `;
     try {
+      // AppSync now reliably returns errors via VTL, use Amplify client directly
       const resp = await client.graphql({ query: mutation, variables: { token, password } });
-      // check for GraphQL errors
+      console.log('[registerWaiter] response', resp);
+      
+      // Check for GraphQL errors (now reliably returned by backend via VTL)
       if (resp?.errors && resp.errors.length > 0) {
-        setError(resp.errors[0].message || 'Registration failed');
+        const { code, friendly } = parseBackendError(resp.errors[0]?.message);
+        setError(friendly);
+        if (code === 'WAITER_ALREADY_ACTIVE') setTimeout(() => navigate('/auth'), 1200);
         setLoading(false);
         return;
       }
+      
       const user = resp?.data?.registerWaiter;
       if (!user) {
-        setError('Registration failed: no user returned');
+        setError('Registration failed: no user data returned');
         setLoading(false);
         return;
       }
+      
       setSuccessMsg('Registration successful. Please log in.');
-      // redirect to auth/login page after short delay
       setTimeout(() => navigate('/auth'), 1200);
     } catch (err) {
-      // network / thrown errors
-      setError(err.message || 'Registration failed');
+      console.error('[registerWaiter] error', err);
+      // Network errors or thrown exceptions
+      const first = err?.errors?.[0] || err?.data?.errors?.[0];
+      const rawMsg = first?.message || err?.message || '';
+      const { code, friendly } = parseBackendError(rawMsg);
+      setError(friendly);
+      if (code === 'WAITER_ALREADY_ACTIVE') setTimeout(() => navigate('/auth'), 1200);
     } finally {
       setLoading(false);
     }
