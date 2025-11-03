@@ -81,58 +81,62 @@ const AuthLayoutManager = () => {
       {/* Show global loading overlay during initialization. We add a tiny minimum display time
           so users can notice it even if backend responses are very quick. */}
       {showInitOverlay && <LoadingOverlay label="Loading..." />}
-      {isAuthenticated ? (
-        // 已登录用户看到的布局
-        <LayoutStandard>
-          <Routes>
-            <Route path="/" element={<HomePage />} />
-            <Route path="/dishes" element={<DishManagerPage />} />
+      
+      <Routes>
+        {/* Public routes - accessible regardless of auth status */}
+        <Route path="/waiter-register" element={
+          <LayoutPublic>
+            <WaiterRegister />
+          </LayoutPublic>
+        } />
+
+        {isAuthenticated ? (
+          // 已登录用户看到的布局
+          <>
+            <Route path="/" element={<LayoutStandard><HomePage /></LayoutStandard>} />
+            <Route path="/dishes" element={<LayoutStandard><DishManagerPage /></LayoutStandard>} />
             
             {/* Waiters page - only for OWNER */}
             <Route path="/waiters" element={
-              <PermissionGuard permission="viewWaitersPage">
-                <WaitersPage />
-              </PermissionGuard>
+              <LayoutStandard>
+                <PermissionGuard permission="viewWaitersPage">
+                  <WaitersPage />
+                </PermissionGuard>
+              </LayoutStandard>
             } />
 
             {/* Restaurant routes */}
             {/* Only allow create when user has NO restaurant */}
             <Route element={<NoRestaurantGuard />}> 
-              <Route path="/restaurant/create" element={<CreateRestaurant />} />
+              <Route path="/restaurant/create" element={<LayoutStandard><CreateRestaurant /></LayoutStandard>} />
             </Route>
 
             {/* Require existing restaurant for the following */}
             <Route element={<RestaurantGuard />}> 
-              <Route path="/restaurant/info" element={<RestaurantInfo />} />
+              <Route path="/restaurant/info" element={<LayoutStandard><RestaurantInfo /></LayoutStandard>} />
               
               {/* Subscription plan - only for OWNER */}
               <Route path="/restaurant/subscriptionplan" element={
-                <PermissionGuard permission="viewSubscriptionPlan">
-                  <SubscriptionPlan />
-                </PermissionGuard>
+                <LayoutStandard>
+                  <PermissionGuard permission="viewSubscriptionPlan">
+                    <SubscriptionPlan />
+                  </PermissionGuard>
+                </LayoutStandard>
               } />
             </Route>
 
-            {/* <Route path="/dish-types" element={<DishTypesPage />} /> */}
-            {/* <Route path="/settings" element={<SettingsPage />} /> */}
             {/* 如果用户已登录，再次访问 /auth 应该重定向或显示主页 */}
-            <Route path="/auth" element={<HomePage />} />
-          </Routes>
-        </LayoutStandard>
-      ) : (
-        // 未登录用户看到的布局
-        <Routes>
-          {/* waiter-register 独立布局 */}
-          <Route path="/waiter-register" element={
-            <LayoutPublic>
-              <WaiterRegister />
-            </LayoutPublic>
-          } />
-          {/* 其它未认证可访问的公开页面 */}
-          <Route path="/" element={<LayoutLogin />} /> {/* 确保根路径也显示登录布局 */}
-          <Route path="/auth" element={<LayoutLogin />} />
-        </Routes>
-      )}
+            <Route path="/auth" element={<LayoutStandard><HomePage /></LayoutStandard>} />
+          </>
+        ) : (
+          // 未登录用户看到的布局
+          <>
+            {/* 其它未认证可访问的公开页面 */}
+            <Route path="/" element={<LayoutLogin />} /> {/* 确保根路径也显示登录布局 */}
+            <Route path="/auth" element={<LayoutLogin />} />
+          </>
+        )}
+      </Routes>
     </>
   );
 };

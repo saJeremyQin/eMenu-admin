@@ -7,20 +7,18 @@ const client = generateClient();
 
 const fetchWaiters = async () => {
 	const query = /* GraphQL */ `
-		query GetRestaurant {
-			getRestaurant {
-				waiters {
-					id
-					email
-					createdAt
-					status
-					isDeleted
-				}
+		query ListWaiters {
+			listWaiters {
+				id
+				email
+				createdAt
+				status
+				isDeleted
 			}
 		}
 	`;
 	const resp = await client.graphql({ query });
-	return resp?.data?.getRestaurant?.waiters || [];
+	return resp?.data?.listWaiters || [];
 };
 
 const inviteWaiter = async (email) => {
@@ -101,7 +99,7 @@ const WaitersPage = () => {
 								<td>{w.createdAt ? new Date(w.createdAt).toLocaleString() : '-'}</td>
 								<td>
 									{w.isDeleted ? <span className={styles.statusDeleted}>Deleted</span> :
-									 w.status === 'active' ? <span className={styles.statusActive}>Active</span> :
+									 w.status === 'ACTIVE' ? <span className={styles.statusActive}>Active</span> :
 									 <span className={styles.statusInvited}>Invited</span>}
 								</td>
 							</tr>

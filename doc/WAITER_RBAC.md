@@ -6,18 +6,23 @@ This document describes the role-based permission system implemented for the eMe
 
 ## Roles
 
-### OWNER (Restaurant Owner)
+### BOSS (Restaurant Owner)
 - Full access to all features
-- Can create, edit, and delete dishes
+- Can create, edit, and delete dishes and dish types
 - Can invite and manage waiters
 - Can modify restaurant information
 - Can manage subscription plans
+- Can view all orders and update order status
+- Can checkout orders
 
 ### WAITER (Restaurant Staff)
-- Limited read-only access
-- Can view dishes (cannot create/edit/delete)
+- Limited read-only and operational access
+- Can view dishes and dish types (read-only)
+- Can place orders (placeOrder mutation)
 - Can view orders (only their own orders)
 - Can view restaurant information (read-only)
+- Cannot create/edit/delete dishes or dish types
+- Cannot update order status or checkout orders
 - Cannot access waiters management
 - Cannot access subscription plans
 - Cannot access settings
@@ -27,10 +32,11 @@ This document describes the role-based permission system implemented for the eMe
 ### 1. Permission Configuration (`src/lib/permissions.js`)
 
 Central permissions file defining:
-- Role constants: `ROLES.OWNER`, `ROLES.WAITER`
+- Role constants: `ROLES.BOSS`, `ROLES.WAITER` (lowercase values: 'boss', 'waiter')
 - Permission functions for each feature
 - Helper function `hasPermission(permission, role)`
 - Role name formatter `getRoleName(role)`
+- Case normalization to handle legacy uppercase role values
 
 ```javascript
 // Example usage
@@ -39,6 +45,11 @@ import { hasPermission, ROLES } from '../../lib/permissions';
 const canEdit = hasPermission('editDish', userRole);
 const isWaiter = userRole === ROLES.WAITER;
 ```
+
+**Key Implementation Details:**
+- Role values are lowercase ('boss', 'waiter') to match backend storage
+- `normalizeRole()` helper ensures case-insensitive comparisons
+- Permission checks use normalized role values for consistency
 
 ### 2. Permission Guard Component (`src/components/guards/PermissionGuard.jsx`)
 
@@ -59,15 +70,18 @@ React component for route-level protection:
 
 #### Navigation (`src/components/Navigation/Navigation.jsx`)
 - Conditionally renders menu items based on role
-- Waiters navigation: Hidden items:
+- BOSS sees all menu items
+- WAITER navigation shows only: Home, Dishes, Orders, Restaurant Info
+- Hidden items for WAITER:
   - Waiters page
   - Subscription Plan
   - Settings
 
 #### HomePage (`src/pages/HomePage/HomePage.jsx`)
-- Different welcome messages for OWNER vs WAITER
-- Waiter-specific instructions for using tablet app
+- Different welcome messages for BOSS vs WAITER
+- WAITER sees specific instructions for using tablet app
 - Lists accessible features based on role
+- Displays user role name using `getRoleName()`
 
 #### DishManagerPage (`src/pages/DishManagerPage/DishManagerPage.jsx`)
 - Shows "Dishes (Read-Only)" title for waiters
@@ -105,63 +119,319 @@ Routes protected by `PermissionGuard`:
 
 ## Backend Integration
 
-### Current State
-- Frontend permission checks are in place
-- Backend GraphQL resolvers should verify role before mutations
+### Current Implementation Status
 
-### Recommended Backend Changes
-1. Add role-based authorization in Lambda resolvers
-2. Reject mutations from WAITER role:
-   - `createDish`, `updateDish`, `deleteDish`
-   - `updateRestaurantInfo`
-   - `updateRestaurantSubscriptionPlan`
-   - `inviteWaiter`
-3. Filter `listOrders` query to return only waiter's own orders
+**Frontend (✅ Completed):**
+- Permission checks in UI components
+- Route guards for protected pages
+- Role-based menu visibility
+- Read-only mode for WAITER role
 
-### Example Backend Check
+**Backend (📋 Planned):**
+- GraphQL resolvers should verify role before executing mutations
+- Query filtering based on user role (e.g., orders)
+
+### Backend RBAC Design
+
+#### Permission Model
+
+**Core Principles:**
+1. **Defense in Depth**: Frontend controls are UX-only; backend must independently validate
+2. **Least Privilege**: Each role can only perform actions within their scope
+3. **Unified Auth Context**: Leverage existing `identity` object from AppSync
+
+#### Role-Based Permission Matrix
+
+| Operation | BOSS | WAITER | Notes |
+|-----------|------|--------|-------|
+| **Dish Management** | | | |
+| `listDishes` | ✅ | ✅ (read-only) | Both can view |
+| `createDish` | ✅ | ❌ | BOSS only |
+| `updateDish` | ✅ | ❌ | BOSS only |
+| `deleteDish` | ✅ | ❌ | BOSS only |
+| `updateDishAvailability` | ✅ | ❌ | BOSS only |
+| **Dish Type Management** | | | |
+| `listDishTypes` | ✅ | ✅ (read-only) | Both can view |
+| `createDishType` | ✅ | ❌ | BOSS only |
+| `updateDishType` | ✅ | ❌ | BOSS only |
+| `deleteDishType` | ✅ | ❌ | BOSS only |
+| **Restaurant Management** | | | |
+| `getRestaurant` | ✅ | ✅ (read-only) | Both can view |
+| `createRestaurant` | ✅ | ❌ | BOSS only |
+| `updateRestaurantInfo` | ✅ | ❌ | BOSS only |
+| `updateRestaurantSubscriptionPlan` | ✅ | ❌ | BOSS only |
+| **Waiter Management** | | | |
+| `inviteWaiter` | ✅ | ❌ | BOSS only |
+| `deleteWaiter` | ✅ | ❌ | BOSS only |
+| **Order Management** | | | |
+| `placeOrder` | ✅ | ✅ | Both can create orders |
+| `listOrders` | ✅ (all) | ✅ (own only) | Filtered by role |
+| `updateOrderStatus` | ✅ | ❌ | BOSS only |
+| `checkoutOrder` | ✅ | ❌ | BOSS only |
+
+#### Implementation Strategy
+
+**Step 1: Create Permission Helper Functions**
+
+Add to `lambdas/emenu_server/index.mjs`:
+
 ```javascript
-// In Lambda resolver
-const identity = event.identity;
-const userRole = identity.claims?.['custom:role']; // or from DB
+/**
+ * Get user role from identity
+ * @param {Object} identity - AppSync identity object
+ * @returns {Promise<string>} - User role ('boss' or 'waiter')
+ */
+async function getUserRole(identity) {
+  const cognitoId = identity.sub;
+  const user = await User.findOne({ cognitoId, isDeleted: false });
+  if (!user) throw new Error('User not found');
+  return user.role; // 'boss' or 'waiter'
+}
 
-if (fieldName === 'updateDish' && userRole === 'WAITER') {
-  throw new Error('PERMISSION_DENIED: Waiters cannot edit dishes');
+/**
+ * Require user to have one of the allowed roles
+ * @param {Object} identity - AppSync identity object
+ * @param {Array<string>} allowedRoles - Array of allowed roles, e.g., ['boss']
+ * @returns {Promise<string>} - User's role if authorized
+ * @throws {Error} - If user doesn't have required role
+ */
+async function requireRole(identity, allowedRoles) {
+  const role = await getUserRole(identity);
+  if (!allowedRoles.includes(role)) {
+    throw new Error(
+      `PERMISSION_DENIED: Required role: ${allowedRoles.join(' or ')}, but you are: ${role}`
+    );
+  }
+  return role;
+}
+```
+
+**Step 2: Add Role Checks to Mutations**
+
+Example implementation for dish management:
+
+```javascript
+// Dish Management - BOSS only
+const createDish = async (args, identity) => {
+  console.log('Executing createDish...');
+  await requireRole(identity, ['boss']); // ⬅️ Add this check
+  
+  const restaurantId = await getRestaurantIdFromIdentity(identity);
+  // ... rest of implementation
+};
+
+const updateDish = async (args, identity) => {
+  console.log('Executing updateDish...');
+  await requireRole(identity, ['boss']); // ⬅️ Add this check
+  // ... rest of implementation
+};
+
+const deleteDish = async (args, identity) => {
+  console.log('Executing deleteDish...');
+  await requireRole(identity, ['boss']); // ⬅️ Add this check
+  // ... rest of implementation
+};
+
+const updateDishAvailability = async (args, identity) => {
+  console.log('Executing updateDishAvailability...');
+  await requireRole(identity, ['boss']); // ⬅️ Add this check
+  // ... rest of implementation
+};
+```
+
+**Step 3: Implement Role-Based Query Filtering**
+
+For `listOrders`, filter results based on role:
+
+```javascript
+const listOrders = async (event, identity) => {
+  console.log('Executing listOrders...');
+  const role = await getUserRole(identity); // ⬅️ Get user role
+  const restaurantId = await getRestaurantIdFromIdentity(identity);
+  const { status, dateFrom, dateTo } = event.arguments;
+  
+  const filter = { restaurantId, isDeleted: { $ne: true } };
+  
+  // WAITER can only see their own orders
+  if (role === 'waiter') {
+    const user = await User.findOne({ cognitoId: identity.sub });
+    filter.waiterId = user._id; // ⬅️ Filter by waiter ID
+    console.log(`Filtering orders for waiter: ${user._id}`);
+  }
+  // BOSS can see all orders (no additional filter)
+  
+  if (status) filter.status = status;
+  if (dateFrom || dateTo) {
+    filter.createdAt = {};
+    if (dateFrom) filter.createdAt.$gte = new Date(dateFrom);
+    if (dateTo) filter.createdAt.$lte = new Date(dateTo);
+  }
+  
+  const orders = await Order.find(filter).populate('items').sort({ createdAt: -1 });
+  return orders.map(o => o.toJSON());
+};
+```
+
+#### Complete Mutation List Requiring Role Checks
+
+**BOSS-only mutations (add `requireRole(identity, ['boss'])`)**:
+- `createDish`
+- `updateDish`
+- `deleteDish`
+- `updateDishAvailability`
+- `createDishType`
+- `updateDishType`
+- `deleteDishType`
+- `updateRestaurantInfo`
+- `updateRestaurantSubscriptionPlan`
+- `inviteWaiter`
+- `deleteWaiter`
+- `updateOrderStatus`
+- `checkoutOrder`
+
+**Both roles allowed (no role check needed)**:
+- `placeOrder` - Both BOSS and WAITER can place orders
+- `listDishes` - Both can view (read-only)
+- `listDishTypes` - Both can view (read-only)
+- `getRestaurant` - Both can view (read-only)
+
+**Role-filtered queries**:
+- `listOrders` - Add `waiterId` filter for WAITER role
+
+### Error Handling
+
+Backend should return consistent error messages:
+
+```javascript
+// Example error response
+{
+  "errors": [{
+    "message": "PERMISSION_DENIED: Required role: boss, but you are: waiter",
+    "errorType": "Lambda:Unhandled"
+  }]
+}
+```
+
+Frontend can catch and display user-friendly messages:
+```javascript
+if (error.message.includes('PERMISSION_DENIED')) {
+  setError('You do not have permission to perform this action.');
 }
 ```
 
 ## Security Considerations
 
-1. **Defense in Depth**: Frontend checks are for UX; backend must also validate
-2. **Role Storage**: User role stored in:
-   - MongoDB User document (`role` field)
-   - Redux store (`state.user.role`)
-   - Could be added to Cognito custom attributes for easier access
-3. **Token-based**: Role should be included in JWT claims for backend validation
+1. **Defense in Depth**: 
+   - Frontend checks provide good UX (hide/disable unavailable features)
+   - Backend validation is mandatory for security (prevent API abuse)
+   - Both layers work together for robust protection
+
+2. **Role Storage and Verification**: 
+   - User role stored in MongoDB User document (`role` field: 'boss' or 'waiter')
+   - Frontend stores role in Redux (`state.user.role`)
+   - Backend fetches role from database using `identity.sub` (Cognito ID)
+   - Role normalization handles case variations for compatibility
+
+3. **Authentication Flow**:
+   - AppSync validates JWT token from Cognito
+   - Lambda receives authenticated `identity` object
+   - Backend queries User table by `cognitoId` (from `identity.sub`)
+   - Role-based checks execute before business logic
+
+4. **GraphQL Security**:
+   - All mutations (except `registerWaiter`) require Cognito authentication
+   - `registerWaiter` uses API Key auth (dedicated type `RegisterWaiterPayload`)
+   - VTL response template propagates errors to frontend
+   - IAM policies restrict Lambda's Cognito permissions
 
 ## Testing Checklist
 
-### WAITER Role Testing
+### Frontend Testing
+
+#### WAITER Role
 - [ ] Navigation only shows: Home, Dishes, Orders, Restaurant Info
-- [ ] Home page shows tablet app instructions
-- [ ] Dishes page is read-only with info alert
-- [ ] Restaurant Info page has disabled inputs
+- [ ] Home page shows waiter-specific welcome and tablet app instructions
+- [ ] Dishes page shows "Dishes (Read-Only)" title with info alert
+- [ ] Restaurant Info page has disabled inputs and read-only banner
 - [ ] Direct navigation to `/waiters` redirects to home
 - [ ] Direct navigation to `/restaurant/subscriptionplan` redirects to home
+- [ ] No create/edit/delete buttons visible on Dishes page
+- [ ] User role displays as "Waiter" on home page
 
-### OWNER Role Testing
-- [ ] All navigation items visible
-- [ ] Can create/edit dishes
-- [ ] Can invite waiters
-- [ ] Can update restaurant info
-- [ ] Can manage subscription
+#### BOSS Role
+- [ ] All navigation items visible (Home, Dishes, Orders, Restaurant Info, Waiters, Subscription Plan, Settings)
+- [ ] Can create/edit/delete dishes
+- [ ] Can invite and manage waiters
+- [ ] Can update restaurant information
+- [ ] Can manage subscription plan
+- [ ] User role displays as "Restaurant Owner" on home page
+
+### Backend Testing (Once Implemented)
+
+#### WAITER Role - Permissions
+- [ ] ✅ Can call `placeOrder` mutation
+- [ ] ✅ Can call `listDishes` query
+- [ ] ✅ Can call `listDishTypes` query
+- [ ] ✅ Can call `getRestaurant` query
+- [ ] ✅ Can call `listOrders` query (sees only own orders)
+- [ ] ❌ Cannot call `createDish` (returns PERMISSION_DENIED)
+- [ ] ❌ Cannot call `updateDish` (returns PERMISSION_DENIED)
+- [ ] ❌ Cannot call `deleteDish` (returns PERMISSION_DENIED)
+- [ ] ❌ Cannot call `updateDishAvailability` (returns PERMISSION_DENIED)
+- [ ] ❌ Cannot call `createDishType` (returns PERMISSION_DENIED)
+- [ ] ❌ Cannot call `updateDishType` (returns PERMISSION_DENIED)
+- [ ] ❌ Cannot call `deleteDishType` (returns PERMISSION_DENIED)
+- [ ] ❌ Cannot call `updateRestaurantInfo` (returns PERMISSION_DENIED)
+- [ ] ❌ Cannot call `updateRestaurantSubscriptionPlan` (returns PERMISSION_DENIED)
+- [ ] ❌ Cannot call `inviteWaiter` (returns PERMISSION_DENIED)
+- [ ] ❌ Cannot call `updateOrderStatus` (returns PERMISSION_DENIED)
+- [ ] ❌ Cannot call `checkoutOrder` (returns PERMISSION_DENIED)
+
+#### BOSS Role - Permissions
+- [ ] ✅ All mutations and queries succeed
+- [ ] ✅ `listOrders` returns all restaurant orders
+
+#### Order Filtering
+- [ ] WAITER A can only see orders where `waiterId` matches their user ID
+- [ ] WAITER A cannot see orders created by WAITER B
+- [ ] BOSS can see all orders regardless of `waiterId`
 
 ## Future Enhancements
 
-1. **Orders Filtering**: Implement waiter-specific order filtering in backend
-2. **Audit Logging**: Track who made what changes
-3. **More Granular Permissions**: Add permissions for specific actions
-4. **Role Management UI**: Allow owner to change user roles
-5. **Permission Groups**: Support multiple permission sets (e.g., MANAGER role)
+1. **Backend RBAC Completion**: 
+  - Implement role checks in all BOSS-only mutations
+  - Add order filtering by `waiterId` for WAITER role
+  - Write integration tests for permission enforcement
+
+2. **Audit Logging**: 
+  - Track who made what changes (user ID, action, timestamp)
+  - Store audit trail in dedicated collection
+  - Display change history in admin UI
+
+3. **More Granular Permissions**: 
+  - Support for specific actions (e.g., "can_update_dish_price" vs "can_update_dish_availability")
+  - Permission sets or profiles for easier management
+  - Time-based permissions (e.g., temporary elevated access)
+
+4. **Additional Roles**: 
+  - MANAGER: Can edit dishes but not manage subscription
+  - VIEWER: Read-only access to all data (for reporting/analytics)
+  - CASHIER: Can checkout orders but not edit menu
+
+5. **Role Management UI**: 
+  - Allow BOSS to change waiter roles
+  - Invite users with pre-assigned roles
+  - Bulk role updates
+
+6. **Enhanced Order Features**:
+  - Waiters can update their own pending orders
+  - Real-time order notifications
+  - Order assignment to specific waiters
+
+7. **Performance Optimization**:
+  - Cache user role in JWT claims (custom Cognito attribute)
+  - Avoid DB lookup for every permission check
+  - Use AppSync field-level authorization directives
 
 ## Files Modified
 
@@ -181,10 +451,30 @@ if (fieldName === 'updateDish' && userRole === 'WAITER') {
 
 ## Summary
 
-The RBAC system provides a clean separation between OWNER and WAITER roles:
-- **Frontend**: UI elements conditionally rendered based on permissions
-- **Routes**: Protected with permission guards
-- **UX**: Clear visual indicators for read-only access
-- **Backend (recommended)**: Mutations should validate role before execution
+The RBAC system provides comprehensive role-based access control with clear separation between BOSS and WAITER roles:
 
-This approach ensures waiters can access the information they need while preventing unauthorized modifications, maintaining data integrity and security.
+### Frontend (✅ Implemented)
+- **UI Components**: Conditionally rendered based on permissions
+- **Routes**: Protected with `PermissionGuard` component
+- **Navigation**: Role-based menu visibility
+- **UX**: Clear visual indicators (read-only banners, disabled inputs, info alerts)
+- **Role Normalization**: Case-insensitive role handling for data compatibility
+
+### Backend (📋 Design Complete, Implementation Pending)
+- **Permission Model**: Well-defined permission matrix for all operations
+- **Helper Functions**: `getUserRole()` and `requireRole()` for enforcement
+- **Mutation Protection**: BOSS-only mutations clearly identified
+- **Query Filtering**: Orders filtered by `waiterId` for WAITER role
+- **Error Handling**: Consistent `PERMISSION_DENIED` error messages
+
+### Security Architecture
+1. **Defense in Depth**: Frontend UX + Backend validation
+2. **Least Privilege**: Each role has minimum necessary permissions
+3. **Unified Auth**: Leverages AppSync identity and Cognito authentication
+4. **Audit Trail**: Foundation for tracking changes by user and role
+
+This dual-layer approach ensures:
+- Waiters can efficiently access features they need (dishes, orders, restaurant info)
+- Unauthorized modifications are prevented at both UI and API levels
+- Clear separation of responsibilities between BOSS and WAITER roles
+- Data integrity and security maintained across the system
