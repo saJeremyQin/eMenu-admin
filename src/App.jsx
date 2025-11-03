@@ -23,6 +23,7 @@ import SubscriptionPlan from './pages/SubscriptionPlan/SubscriptionPlan';
 import WaiterRegister from './pages/WaiterRegister/WaiterRegister';
 import RestaurantGuard from './components/guards/RestaurantGuard';
 import NoRestaurantGuard from './components/guards/NoRestaurantGuard';
+import PermissionGuard from './components/guards/PermissionGuard';
 
 const AuthLayoutManager = () => {
   const { authStatus } = useAuthenticator(context => [context.authStatus]);
@@ -86,7 +87,13 @@ const AuthLayoutManager = () => {
           <Routes>
             <Route path="/" element={<HomePage />} />
             <Route path="/dishes" element={<DishManagerPage />} />
-            <Route path="/waiters" element={<WaitersPage />} />
+            
+            {/* Waiters page - only for OWNER */}
+            <Route path="/waiters" element={
+              <PermissionGuard permission="viewWaitersPage">
+                <WaitersPage />
+              </PermissionGuard>
+            } />
 
             {/* Restaurant routes */}
             {/* Only allow create when user has NO restaurant */}
@@ -97,7 +104,13 @@ const AuthLayoutManager = () => {
             {/* Require existing restaurant for the following */}
             <Route element={<RestaurantGuard />}> 
               <Route path="/restaurant/info" element={<RestaurantInfo />} />
-              <Route path="/restaurant/subscriptionplan" element={<SubscriptionPlan />} />
+              
+              {/* Subscription plan - only for OWNER */}
+              <Route path="/restaurant/subscriptionplan" element={
+                <PermissionGuard permission="viewSubscriptionPlan">
+                  <SubscriptionPlan />
+                </PermissionGuard>
+              } />
             </Route>
 
             {/* <Route path="/dish-types" element={<DishTypesPage />} /> */}

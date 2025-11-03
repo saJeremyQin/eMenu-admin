@@ -13,6 +13,20 @@
   }
 }
 
+.infoAlert {
+  background-color: #eff6ff;
+  border-left: 4px solid #3b82f6;
+  padding: 1em;
+  margin-bottom: 1.5em;
+  border-radius: 4px;
+  
+  p {
+    margin: 0;
+    color: #1e40af;
+    font-size: 0.95em;
+  }
+}
+
 .form {
   display: flex;
   flex-direction: column;
@@ -39,6 +53,12 @@
       outline: none;
       border-color: #007bff;
       box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+    }
+    
+    &:disabled {
+      background-color: #f3f4f6;
+      color: #6b7280;
+      cursor: not-allowed;
     }
   }
 }

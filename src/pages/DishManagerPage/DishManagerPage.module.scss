@@ -41,6 +41,20 @@
 .message { color: #28a745; } // Green for success messages
 .infoText { color: var.$light-text-color; font-style: italic; }
 
+.infoAlert {
+  background-color: #eff6ff;
+  border-left: 4px solid #3b82f6;
+  padding: 1em;
+  margin-bottom: 1.5em;
+  border-radius: 4px;
+  
+  p {
+    margin: 0;
+    color: #1e40af;
+    font-size: 0.95em;
+  }
+}
+
 .formSection, .tableSection {
   margin-bottom: var.$spacing-xl;
 }

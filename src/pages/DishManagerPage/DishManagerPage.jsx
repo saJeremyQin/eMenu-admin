@@ -5,6 +5,7 @@ import { useAuthenticator } from '@aws-amplify/ui-react';
 import { useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { selectRestaurant, selectRestaurantLoaded } from '../../store/restaurantSlice';
+import { hasPermission, ROLES } from '../../lib/permissions';
 
 import styles from './DishManagerPage.module.scss';
 
@@ -46,6 +47,11 @@ function DishManagerPage() {
   // Use Redux store to get the current restaurant (loaded via app init)
   const restaurant = useSelector(selectRestaurant);
   const restaurantLoaded = useSelector(selectRestaurantLoaded);
+  
+  // Get user role for permission checks
+  const userRole = useSelector((state) => state.user.role);
+  const canEdit = hasPermission('editDish', userRole);
+  const isWaiter = userRole === ROLES.WAITER;
 
   // When restaurant data becomes available, set restaurantId and fetch dishes
   useEffect(() => {
@@ -101,7 +107,15 @@ function DishManagerPage() {
 
   return (
     <div className={styles.container}>
-      <h2 className={styles.heading}>Dish Management</h2>
+      <h2 className={styles.heading}>
+        {isWaiter ? 'Dishes (Read-Only)' : 'Dish Management'}
+      </h2>
+      
+      {isWaiter && (
+        <div className={styles.infoAlert}>
+          <p>ℹ️ You are viewing dishes in read-only mode. Contact your manager to make changes.</p>
+        </div>
+      )}
 
       {loading && <p className={styles.loading}>Loading...</p>}
       {error && <p className={styles.error}>{error}</p>}
@@ -111,12 +125,14 @@ function DishManagerPage() {
       {!loading && !currentRestaurantId && !error && (
         <div className={styles.infoBlock}>
           <p className={styles.infoText}>User is not associated with a restaurant. Please create one to manage dishes.</p>
-          <button
-            className={styles.createRestaurantButton}
-            onClick={() => navigate('/restaurant/create')}
-          >
-            Create Restaurant
-          </button>
+          {canEdit && (
+            <button
+              className={styles.createRestaurantButton}
+              onClick={() => navigate('/restaurant/create')}
+            >
+              Create Restaurant
+            </button>
+          )}
         </div>
       )}
 

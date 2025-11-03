@@ -17,26 +17,92 @@
   margin-bottom: 0.5em;
 }
 
+.roleText {
+  font-size: 1em;
+  color: #6b7280;
+  margin-bottom: 1em;
+  
+  strong {
+    color: #3b82f6;
+  }
+}
+
 .subText {
   font-size: 1.1em;
   color: #4b5563;
   margin-bottom: 1.5em;
 }
 
-// 假设 Authenticator 内部按钮样式需要修改，可以像这样
-// :global(.amplify-button[data-amplify-button="primary"]) {
-//   background-color: #ef4444; // Tailwind red-500
-//   color: white;
-//   font-weight: bold;
-//   padding: 8px 16px;
-//   border-radius: 6px; // Tailwind rounded-md
-//   box-shadow: 0 1px 3px rgba(0,0,0,0.1), 0 1px 2px rgba(0,0,0,0.06);
-//   transition: background-color 0.3s ease-in-out;
-//   border: none;
-//   cursor: pointer;
-//   margin-top: 20px;
+.infoText {
+  font-size: 1em;
+  color: #4b5563;
+  line-height: 1.6;
+  margin-bottom: 1em;
+}
 
-//   &:hover {
-//     background-color: #dc2626; // Tailwind red-700
-//   }
-// }
+.separator {
+  width: 80%;
+  max-width: 600px;
+  border: none;
+  border-top: 2px solid #e5e7eb;
+  margin: 1.5em 0;
+}
+
+.waiterWelcome {
+  max-width: 700px;
+  text-align: left;
+  background: white;
+  padding: 2em;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  
+  h3 {
+    color: #1f2937;
+    font-size: 1.4em;
+    margin-bottom: 0.8em;
+    margin-top: 1.5em;
+    
+    &:first-child {
+      margin-top: 0;
+    }
+  }
+}
+
+.instructionList {
+  margin: 1em 0;
+  padding-left: 1.5em;
+  color: #4b5563;
+  line-height: 1.8;
+  
+  li {
+    margin-bottom: 0.5em;
+  }
+}
+
+.featureList {
+  list-style: none;
+  padding: 0;
+  margin: 1em 0;
+  
+  li {
+    padding: 0.8em;
+    margin-bottom: 0.5em;
+    background: #f9fafb;
+    border-left: 4px solid #3b82f6;
+    border-radius: 4px;
+    color: #4b5563;
+    
+    strong {
+      color: #1f2937;
+    }
+  }
+}
+
+.helpText {
+  margin-top: 1.5em;
+  padding: 1em;
+  background: #eff6ff;
+  border-radius: 8px;
+  color: #1e40af;
+  font-size: 0.95em;
+}

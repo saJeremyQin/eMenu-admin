@@ -4,6 +4,7 @@ import styles from './RestaurantInfo.module.scss';
 import { generateClient } from 'aws-amplify/api';
 import { useSelector, useDispatch } from 'react-redux';
 import { selectRestaurant, selectRestaurantLoaded, setRestaurant } from '../../store/restaurantSlice';
+import { hasPermission, ROLES } from '../../lib/permissions';
 
 const client = generateClient();
 
@@ -14,6 +15,11 @@ const RestaurantInfo = () => {
   // read restaurant from redux
   const restaurant = useSelector(selectRestaurant);
   const restaurantLoaded = useSelector(selectRestaurantLoaded);
+  
+  // Get user role for permission checks
+  const userRole = useSelector((state) => state.user.role);
+  const canEdit = hasPermission('editRestaurantInfo', userRole);
+  const isWaiter = userRole === ROLES.WAITER;
 
   const [formData, setFormData] = React.useState({
     name: '',
@@ -81,7 +87,13 @@ const RestaurantInfo = () => {
 
   return (
     <div className={styles.container}>
-      <h1>Restaurant Info</h1>
+      <h1>{isWaiter ? 'Restaurant Information (Read-Only)' : 'Restaurant Info'}</h1>
+      
+      {isWaiter && (
+        <div className={styles.infoAlert}>
+          <p>ℹ️ You are viewing restaurant information in read-only mode.</p>
+        </div>
+      )}
       
       <form onSubmit={onSubmit} className={styles.form}>
         <div className={styles.inputGroup}>
@@ -94,6 +106,7 @@ const RestaurantInfo = () => {
             onChange={handleInputChange}
             required
             placeholder="Enter restaurant name"
+            disabled={!canEdit}
           />
         </div>
 
@@ -107,6 +120,7 @@ const RestaurantInfo = () => {
             onChange={handleInputChange}
             required
             placeholder="Enter restaurant address"
+            disabled={!canEdit}
           />
         </div>
 
@@ -120,6 +134,7 @@ const RestaurantInfo = () => {
             onChange={handleInputChange}
             required
             placeholder="Enter phone number"
+            disabled={!canEdit}
           />
         </div>
 
@@ -140,23 +155,27 @@ const RestaurantInfo = () => {
             )}
           </div>
           
-          <p className={styles.uploadNote}>
-            Logo upload functionality can be added here
-          </p>
+          {canEdit && (
+            <p className={styles.uploadNote}>
+              Logo upload functionality can be added here
+            </p>
+          )}
         </div>
 
-        <div className={styles.submitSection}>
-          <button type="submit" className={styles.submitButton}>
-            Save Changes
-          </button>
-          <button 
-            type="button" 
-            onClick={() => navigate('/restaurant')}
-            className={styles.cancelButton}
-          >
-            Cancel
-          </button>
-        </div>
+        {canEdit && (
+          <div className={styles.submitSection}>
+            <button type="submit" className={styles.submitButton}>
+              Save Changes
+            </button>
+            <button 
+              type="button" 
+              onClick={() => navigate('/restaurant')}
+              className={styles.cancelButton}
+            >
+              Cancel
+            </button>
+          </div>
+        )}
       </form>
     </div>
   );
