@@ -67,7 +67,7 @@ describe('fetchUser thunk', () => {
 describe('reducers edge cases', () => {
   afterEach(() => {
     // avoid test pollution if setApiClient used elsewhere
-    try { setApiClient(null); } catch (e) {}
+    try { setApiClient(null); } catch { /* ignore */ }
     vi.resetAllMocks();
   });
 

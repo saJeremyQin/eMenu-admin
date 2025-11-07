@@ -10,9 +10,9 @@ afterEach(async () => {
 	try {
 		const mod = await import('../store/userSlice');
 		if (mod && typeof mod.setApiClient === 'function') mod.setApiClient(null);
-	} catch (e) {}
+	} catch { /* ignore */ }
 	try {
 		const mod2 = await import('../store/restaurantSlice');
 		if (mod2 && typeof mod2.setApiClient === 'function') mod2.setApiClient(null);
-	} catch (e) {}
+	} catch { /* ignore */ }
 });

@@ -16,7 +16,9 @@ import { useNavigate } from 'react-router-dom';
 
 import HomePage from './pages/HomePage/HomePage';
 import WaitersPage from './pages/WaitersPage/WaitersPage';
-import DishManagerPage from './pages/DishManagerPage/DishManagerPage';
+// Dish management pages
+import DishTypesPage from './pages/DishTypesPage/DishTypesPage';
+import DishesPage from './pages/DishesPage/DishesPage';
 import CreateRestaurant from './pages/CreateRestaurant/CreateRestaurant';
 import RestaurantInfo from './pages/RestaurantInfo/RestaurantInfo';
 import SubscriptionPlan from './pages/SubscriptionPlan/SubscriptionPlan';
@@ -43,8 +45,8 @@ const AuthLayoutManager = () => {
     if(!isAuthenticated) return
     const init = async () => {
       try {
-        const user = await dispatch(fetchUser()).unwrap();
-      } catch (e) {
+        await dispatch(fetchUser()).unwrap();
+      } catch {
         // ignore
       }
       try {
@@ -53,7 +55,7 @@ const AuthLayoutManager = () => {
         // if (typeof window !== 'undefined' && window.__APP_STORE__) {
         //   console.log('store.restaurant after fetchRestaurant:', window.__APP_STORE__.getState().restaurant);
         // }
-      } catch (e) {
+      } catch {
         // ignore
       }
     };
@@ -94,7 +96,11 @@ const AuthLayoutManager = () => {
           // 已登录用户看到的布局
           <>
             <Route path="/" element={<LayoutStandard><HomePage /></LayoutStandard>} />
-            <Route path="/dishes" element={<LayoutStandard><DishManagerPage /></LayoutStandard>} />
+            {/** Dish management should require an existing restaurant */}
+            <Route element={<RestaurantGuard />}>
+              <Route path="/dishTypes" element={<LayoutStandard><DishTypesPage /></LayoutStandard>} />
+              <Route path="/dishes" element={<LayoutStandard><DishesPage /></LayoutStandard>} />
+            </Route>
             
             {/* Waiters page - only for OWNER */}
             <Route path="/waiters" element={

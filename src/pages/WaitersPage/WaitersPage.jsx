@@ -50,6 +50,7 @@ const WaitersPage = () => {
 			setWaiters(data);
 		} catch (e) {
 			// handle error
+			console.error('Failed to load waiters', e);
 		}
 		setLoading(false);
 	};

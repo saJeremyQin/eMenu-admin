@@ -16,7 +16,13 @@ const Navigation = () => {
     <nav className={styles.nav}>
       <ul className={styles.navList}>
         <li><Link to="/" className={isActive('/') ? styles.active : ''}><span aria-hidden="true" role="img">🏠</span>Home</Link></li>
-        <li><Link to="/dishes" className={isActive('/dishes') ? styles.active : ''}><span aria-hidden="true" role="img">🍲</span>Dishes</Link></li>
+        <li className={styles.submenu}>
+          <span className={styles.submenuTitle}><span aria-hidden="true" role="img">🍲</span>Dish Management</span>
+          <ul>
+            <li><Link to="/dishTypes" className={isActive('/dishTypes') ? styles.active : ''}><span aria-hidden="true" role="img">📝</span>DishTypes</Link></li>
+            <li><Link to="/dishes" className={isActive('/dishes') ? styles.active : ''}><span aria-hidden="true" role="img">🍲</span>Dishes</Link></li>
+          </ul>
+        </li>
         <li><Link to="/orders" className={isActive('/orders') ? styles.active : ''}><span aria-hidden="true" role="img">🍽️</span>Orders</Link></li>
         
         {/* Waiters page - only for OWNER */}

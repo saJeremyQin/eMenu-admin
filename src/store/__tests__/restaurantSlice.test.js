@@ -1,3 +1,4 @@
+/* eslint-env vitest */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 // Use a global mock to avoid hoisting/TDZ issues when vi.mock is hoisted.
 // Mock only the API module by injecting client via setApiClient in tests.
@@ -70,7 +71,7 @@ describe('fetchRestaurant thunk', () => {
 describe('reducers edge cases', () => {
   afterEach(() => {
     // reset injected client to avoid test pollution
-    try { setApiClient(null); } catch (e) {}
+    try { setApiClient(null); } catch { /* ignore */ }
     vi.resetAllMocks();
   });
 

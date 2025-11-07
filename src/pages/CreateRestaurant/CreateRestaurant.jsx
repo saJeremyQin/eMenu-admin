@@ -1,6 +1,5 @@
 import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { v4 as uuidv4 } from 'uuid';
 import { generateClient } from 'aws-amplify/api';
 import { getCurrentUser, fetchAuthSession } from 'aws-amplify/auth';
 import backendConfig from '../../config/backend-config';
@@ -170,6 +169,8 @@ const CreateRestaurant = () => {
       }
     } catch (error) {
       // 图片还在处理中，继续等待
+      console.log('details of error is', error);
+      
       console.log(`Attempt ${attempts + 1}: Image not ready yet, retrying in 2 seconds...`);
       setTimeout(() => {
         checkImageProcessing(processedKey, attempts + 1);
@@ -185,10 +186,7 @@ const CreateRestaurant = () => {
       return;
     }
 
-    try {
-      // 获取当前用户信息
-      const user = await getCurrentUser();
-      
+    try {    
       // 创建餐厅的 GraphQL mutation
       const createRestaurantMutation = `
         mutation CreateRestaurant($input: RestaurantInput!) {

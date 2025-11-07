@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import { generateClient } from 'aws-amplify/api';
-import awsOutputs from '../../aws-config';
 import { useLocation, useNavigate } from 'react-router-dom';
 import styles from './WaiterRegister.module.scss';
 

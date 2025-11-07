@@ -24,20 +24,20 @@ export const PERMISSIONS = {
   viewSettings: (role) => normalizeRole(role) === ROLES.BOSS,
   
   // Dishes permissions
-  viewDishes: (role) => true, // Both can view
+  viewDishes: () => true, // Both can view
   createDish: (role) => normalizeRole(role) === ROLES.BOSS,
   editDish: (role) => normalizeRole(role) === ROLES.BOSS,
   deleteDish: (role) => normalizeRole(role) === ROLES.BOSS,
   updateDishAvailability: (role) => normalizeRole(role) === ROLES.BOSS,
   
   // Orders permissions
-  viewOrders: (role) => true, // Both can view
+  viewOrders: () => true, // Both can view
   viewOwnOrders: (role) => normalizeRole(role) === ROLES.WAITER, // Waiters can only see their own orders
   viewAllOrders: (role) => normalizeRole(role) === ROLES.BOSS, // Boss can see all
   updateOrderStatus: (role) => normalizeRole(role) === ROLES.BOSS, // Only boss can update
   
   // Restaurant info permissions
-  viewRestaurantInfo: (role) => true, // Both can view
+  viewRestaurantInfo: () => true, // Both can view
   editRestaurantInfo: (role) => normalizeRole(role) === ROLES.BOSS,
   editSubscriptionPlan: (role) => normalizeRole(role) === ROLES.BOSS,
 };

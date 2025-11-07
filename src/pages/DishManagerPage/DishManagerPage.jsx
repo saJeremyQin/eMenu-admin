@@ -1,7 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
 import { generateClient } from 'aws-amplify/api';
-import { useAuthenticator } from '@aws-amplify/ui-react';
 import { useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { selectRestaurant, selectRestaurantLoaded } from '../../store/restaurantSlice';
@@ -35,8 +34,6 @@ const listDishesQuery = `
 
 function DishManagerPage() {
   // Extract user and authStatus from useAuthenticator
-  const { user, authStatus } = useAuthenticator((context) => [context.user, context.authStatus]);
-
   const [dishes, setDishes] = useState([]);
   const [currentRestaurantId, setCurrentRestaurantId] = useState(null);
   const [loading, setLoading] = useState(false);

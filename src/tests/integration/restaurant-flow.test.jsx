@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { Provider } from 'react-redux';
 import { vi } from 'vitest';
@@ -36,7 +36,7 @@ import { setApiClient as setUserApiClient } from '../../store/userSlice';
 describe('Restaurant navigation integration', () => {
   beforeEach(() => {
     vi.resetAllMocks();
-    try { setApiClient(null); } catch (e) {}
+    try { setRestaurantApiClient(null); setUserApiClient(null); } catch { /* ignore */ }
   });
 
   it('shows CreateRestaurant when user has no restaurant', async () => {

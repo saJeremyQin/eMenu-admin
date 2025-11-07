@@ -1,7 +1,6 @@
 import React from 'react';
 import styles from './SubscriptionPlan.module.scss';
 import { generateClient } from 'aws-amplify/api';
-import { getCurrentUser } from 'aws-amplify/auth';
 import UpgradeModal from '../../components/UpgradeModal/UpgradeModal';
 
 const client = generateClient();
