@@ -2,6 +2,9 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import { hasPermission } from '../../lib/permissions';
 import styles from './DishTypesPage.module.scss';
+import { generateClient } from 'aws-amplify/api';
+
+const client = generateClient();
 
 const DishTypesPage = () => {
   const role = useSelector((state) => state.user.role);
@@ -26,28 +29,27 @@ const DishTypesPage = () => {
   }, []);
 
   const fetchDishTypes = async () => {
-    // TODO: 调用 GraphQL API 获取数据
-    // const query = /* GraphQL */`
-    //   query ListDishTypes {
-    //     listDishTypes {
-    //       id
-    //       name
-    //       alias
-    //       sortOrder
-    //       isActive
-    //     }
-    //   }
-    // `;
-    // const resp = await client.graphql({ query });
-    // setDishTypes(resp?.data?.listDishTypes || []);
+    const query = /* GraphQL */`
+      query ListDishTypes {
+        listDishTypes {
+          id
+          name
+          alias
+          sortOrder
+          isActive
+        }
+      }
+    `;
+    const resp = await client.graphql({ query });
+    setDishTypes(resp?.data?.listDishTypes || []);
     
     // // 临时模拟数据
-    setDishTypes([
-      { id: '1', name: 'Appetizers', alias: '前菜', sortOrder: 1, isActive: true },
-      { id: '2', name: 'Main Course', alias: '主菜', sortOrder: 2, isActive: true },
-      { id: '3', name: 'Desserts', alias: '甜点', sortOrder: 3, isActive: false },
-      { id: '4', name: 'Beverages', alias: '饮料', sortOrder: 4, isActive: true },
-    ]);
+    // setDishTypes([
+    //   { id: '1', name: 'Appetizers', alias: '前菜', sortOrder: 1, isActive: true },
+    //   { id: '2', name: 'Main Course', alias: '主菜', sortOrder: 2, isActive: true },
+    //   { id: '3', name: 'Desserts', alias: '甜点', sortOrder: 3, isActive: false },
+    //   { id: '4', name: 'Beverages', alias: '饮料', sortOrder: 4, isActive: true },
+    // ]);
   };
 
   const handleOpenModal = (dishType = null) => {
@@ -88,11 +90,57 @@ const DishTypesPage = () => {
     setLoading(true);
     try {
       if (editingDishType) {
-        // TODO: 调用更新 API
-        console.log('Update Dish Types', { ...formData, id: editingDishType.id });
+        // 调用更新 API
+        const mutation = /* GraphQL */ `
+          mutation UpdateDishType($id: ID!, $input: DishTypeInput!) {
+            updateDishType(id: $id, input: $input) {
+              id
+              name
+              alias
+              sortOrder
+              isActive
+              updatedAt
+            }
+          }
+        `;
+        const resp = await client.graphql({
+          query: mutation,
+          variables: { 
+            id: editingDishType.id,
+            input: {
+              name: formData.name,
+              alias: formData.alias
+              // sortOrder 可选，不传则保持原值
+            }
+          }
+        });
+        console.log('Updated Dish Type:', resp?.data?.updateDishType);
       } else {
-        // TODO: 调用创建 API
-        console.log('Create Dish Types', formData);
+        // 调用创建 API
+        const mutation = /* GraphQL */ `
+          mutation CreateDishType($input: DishTypeInput!) {
+            createDishType(input: $input) {
+              id
+              name
+              alias
+              sortOrder
+              isActive
+              createdAt
+            }
+          }
+        `;
+        const resp = await client.graphql({
+          query: mutation,
+          variables: { 
+            input: {
+              name: formData.name,
+              alias: formData.alias
+              // sortOrder 可选，后端会自动计算
+              // isActive 不需要传，后端默认为 true
+            }
+          }
+        });
+        console.log('Created Dish Type:', resp?.data?.createDishType);       
       }
       
       // 刷新列表
@@ -100,7 +148,10 @@ const DishTypesPage = () => {
       handleCloseModal();
     } catch (error) {
       console.error('Save Error:', error);
-      alert('Save failed, please try again');
+      
+      // 更详细的错误提示
+      const errorMessage = error?.errors?.[0]?.message || error?.message || 'Unknown error';
+      alert(`Save failed: ${errorMessage}`);
     } finally {
       setLoading(false);
     }
@@ -149,23 +200,23 @@ const DishTypesPage = () => {
     toggleTimers.current[dishTypeId] = setTimeout(async () => {
       try {
         // TODO: 调用后端 API
-        console.log('Toggle DishType Status:', { id: dishTypeId, isActive: newStatus });
+        // console.log('Toggle DishType Status:', { id: dishTypeId, isActive: newStatus });
         
-        // const mutation = `
-        //   mutation ToggleDishTypeStatus($id: ID!, $isActive: Boolean!) {
-        //     toggleDishTypeStatus(id: $id, isActive: $isActive) {
-        //       id
-        //       isActive
-        //     }
-        //   }
-        // `;
-        // const resp = await client.graphql({
-        //   query: mutation,
-        //   variables: { id: dishTypeId, isActive: newStatus }
-        // });
+        const mutation = `
+          mutation ToggleDishTypeStatus($id: ID!, $isActive: Boolean!) {
+            toggleDishTypeStatus(id: $id, isActive: $isActive) {
+              id
+              isActive
+            }
+          }
+        `;
+        const resp = await client.graphql({
+          query: mutation,
+          variables: { id: dishTypeId, isActive: newStatus }
+        });
 
         // 成功后重新获取列表（可选，如果信任乐观更新可以不调用）
-        // await fetchDishTypes();
+        await fetchDishTypes();
         
       } catch (error) {
         console.error('Toggle Status Error:', error);
