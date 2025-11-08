@@ -166,7 +166,23 @@ const DishTypesPage = () => {
     try {
       // TODO: 调用删除 API
       console.log('Delete Dish Type:', dishTypeId);
-      
+      const mutation = /* GraphQL */ `
+        mutation DeleteDishType($id: ID!) {
+          deleteDishType(id: $id) {
+            id
+          }
+        }
+      `;
+      const resp = await client.graphql({
+        query: mutation,
+        variables: { id: dishTypeId }
+      });
+
+      if(resp?.errors && resp.errors.length > 0) {
+        throw new Error(resp.errors[0].message);
+      }
+      console.log('Deleted Dish Type:', resp?.data?.deleteDishType?.id);
+
       // 刷新列表
       await fetchDishTypes();
     } catch (error) {
@@ -214,6 +230,8 @@ const DishTypesPage = () => {
           query: mutation,
           variables: { id: dishTypeId, isActive: newStatus }
         });
+        console.log('toggle Dish Type status', resp?.data?.ToggleDishTypeStatus.id);
+        
 
         // 成功后重新获取列表（可选，如果信任乐观更新可以不调用）
         await fetchDishTypes();
