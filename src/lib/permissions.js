@@ -30,6 +30,13 @@ export const PERMISSIONS = {
   deleteDish: (role) => normalizeRole(role) === ROLES.BOSS,
   updateDishAvailability: (role) => normalizeRole(role) === ROLES.BOSS,
   
+  // Dish types (分类) permissions
+  viewDishTypes: () => true, // Both can view dish types
+  createDishType: (role) => normalizeRole(role) === ROLES.BOSS,
+  editDishType: (role) => normalizeRole(role) === ROLES.BOSS,
+  deleteDishType: (role) => normalizeRole(role) === ROLES.BOSS,
+  toggleDishTypeStatus: (role) => normalizeRole(role) === ROLES.BOSS,
+  
   // Orders permissions
   viewOrders: () => true, // Both can view
   viewOwnOrders: (role) => normalizeRole(role) === ROLES.WAITER, // Waiters can only see their own orders

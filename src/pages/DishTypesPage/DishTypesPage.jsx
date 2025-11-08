@@ -8,7 +8,8 @@ const client = generateClient();
 
 const DishTypesPage = () => {
   const role = useSelector((state) => state.user.role);
-  const canEdit = hasPermission('editDish', role);
+  const canEdit = hasPermission('editDishType', role);
+  const canCreate = hasPermission('createDishType', role);
 
   const [dishTypes, setDishTypes] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -265,7 +266,7 @@ const DishTypesPage = () => {
     <div className={styles.container}>
       <div className={styles.header}>
         <h1>Dish Types</h1>
-        {canEdit && (
+        {canCreate && (
           <button 
             className={styles.addButton}
             onClick={() => handleOpenModal()}
@@ -322,7 +323,7 @@ const DishTypesPage = () => {
                     </div>
                   </td>
                   <td className={styles.actions}>
-                    {canEdit && (
+                    {canEdit ? (
                       <>
                         <button
                           className={styles.editButton}
@@ -339,6 +340,11 @@ const DishTypesPage = () => {
                           🗑️
                         </button>
                       </>
+                    ) : (
+                      // if user is a waiter, show N/A in actions column
+                      (role && role.toLowerCase() === 'waiter') ? (
+                        <span className={styles.na}>N/A</span>
+                      ) : null
                     )}
                   </td>
                 </tr>
