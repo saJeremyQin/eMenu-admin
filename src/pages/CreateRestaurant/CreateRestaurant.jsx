@@ -242,7 +242,6 @@ const CreateRestaurant = () => {
           await dispatch(fetchRestaurant()).unwrap();
         } catch (e) {
           // still proceed, but warn
-          // eslint-disable-next-line no-console
           console.warn('fetchRestaurant after create failed:', e);
         } finally {
           setReconciling(false);
@@ -260,6 +259,7 @@ const CreateRestaurant = () => {
 
   return (
     <div className={styles.container}>
+      {reconciling && <LoadingOverlay label="Finalizing restaurant setup..." />}
       <h1>Create Restaurant</h1>
       
       <form onSubmit={handleSubmit} className={styles.form}>
