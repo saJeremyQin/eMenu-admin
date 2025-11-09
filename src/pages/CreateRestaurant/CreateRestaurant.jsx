@@ -4,6 +4,10 @@ import { generateClient } from 'aws-amplify/api';
 import { getCurrentUser, fetchAuthSession } from 'aws-amplify/auth';
 import backendConfig from '../../config/backend-config';
 import styles from './CreateRestaurant.module.scss';
+import { useDispatch } from 'react-redux';
+import { setRestaurant, fetchRestaurant, updateRestaurantField } from '../../store/restaurantSlice';
+import { updateUserField } from '../../store/userSlice';
+import LoadingOverlay from '../../components/LoadingOverlay/LoadingOverlay';
 
 const client = generateClient();
 
@@ -18,8 +22,10 @@ const CreateRestaurant = () => {
   const [uploading, setUploading] = useState(false);
   const [uploadedImageUrl, setUploadedImageUrl] = useState(null);
   const [processing, setProcessing] = useState(false);
+  const [reconciling, setReconciling] = useState(false);
   const fileInputRef = useRef(null);
   const navigate = useNavigate();
+  const dispatch = useDispatch();
 
   const handleInputChange = (e) => {
     setFormData({
@@ -217,10 +223,34 @@ const CreateRestaurant = () => {
         variables: restaurantData
       });
 
-      console.log('Restaurant created:', result.data.createRestaurant);
-
-      alert('Restaurant created successfully!');
-      navigate('/restaurant/info');
+      const created = result?.data?.createRestaurant;
+      console.log('Restaurant created:', created);
+      if (created) {
+        // update redux store so guards/routes reflect new restaurant immediately
+        dispatch(setRestaurant(created));
+        // proactively set loaded=true so route guards and pages render immediately
+        // even if the background fetch fails or is slow.
+        dispatch(updateRestaurantField({ key: 'loaded', value: true }));
+        // ensure the current user's restaurantId matches the newly created restaurant
+        // to avoid guard-based redirects when user.restaurantId is stale.
+        dispatch(updateUserField({ key: 'restaurantId', value: created.id }));
+        alert('Restaurant created successfully!');
+        // show a small loading while we reconcile with server before navigating
+        setReconciling(true);
+        try {
+          // trigger a refresh to reconcile with server and wait for it
+          await dispatch(fetchRestaurant()).unwrap();
+        } catch (e) {
+          // still proceed, but warn
+          // eslint-disable-next-line no-console
+          console.warn('fetchRestaurant after create failed:', e);
+        } finally {
+          setReconciling(false);
+          navigate('/restaurant/info');
+        }
+      } else {
+        alert('Restaurant created but response missing data; please refresh.');
+      }
       
     } catch (error) {
       console.error('Submit error:', error);

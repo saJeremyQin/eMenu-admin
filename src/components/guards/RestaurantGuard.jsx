@@ -11,6 +11,7 @@ const RestaurantGuard = ({ children }) => {
   const navigate = useNavigate();
 
   useEffect(() => {
+  // debug logging removed
     // 没餐厅 -> 去创建
     if (hasRestaurant === false) {
       navigate('/restaurant/create', { replace: true });
