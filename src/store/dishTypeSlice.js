@@ -65,6 +65,7 @@ export const createDishType = createAsyncThunk(
           createDishType(input: $input) {
             id
             name
+            alias
             isActive
             sortOrder
             createdAt
@@ -88,6 +89,7 @@ export const updateDishType = createAsyncThunk(
           updateDishType(id: $id, input: $input) {
             id
             name
+            alias
             isActive
             sortOrder
             updatedAt
