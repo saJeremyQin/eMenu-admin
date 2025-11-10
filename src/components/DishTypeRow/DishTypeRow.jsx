@@ -94,26 +94,26 @@ export default function DishTypeRow({ index, dishType, onEdit, onDelete, onOptim
                 </div>
             </td>
             <td className={`${styles.cell} ${styles.actions}`}>
-                    {canEdit ? (
-                            <>
-                                <button
-                                    className={styles.editButton}
-                                    onClick={() => onEdit?.(dishType)}
-                                    title="Edit"
-                                >
-                                    ✏️
-                                </button>
-                                <button
-                                    className={styles.deleteButton}
-                                    onClick={() => onDelete?.(dishType)}
-                                    title="Delete"
-                                >
-                                    🗑️
-                                </button>
-                            </>
-                    ) : (
-                            <span className={styles.naText}>N/A</span>
-                    )}
+                {canEdit ? (
+                        <>
+                            <button
+                                className={styles.editButton}
+                                onClick={() => onEdit?.(dishType)}
+                                title="Edit"
+                            >
+                                ✏️
+                            </button>
+                            <button
+                                className={styles.deleteButton}
+                                onClick={() => onDelete?.(dishType)}
+                                title="Delete"
+                            >
+                                🗑️
+                            </button>
+                        </>
+                ) : (
+                        <span className={styles.naText}>N/A</span>
+                )}
             </td>
         </tr>
     );

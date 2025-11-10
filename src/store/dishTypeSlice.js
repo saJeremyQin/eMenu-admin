@@ -203,7 +203,6 @@ const slice = createSlice({
         state.loaded = true; // finished attempt
         state.error = action.payload || action.error?.message || 'Failed to fetch dish types';
       })
-
       .addCase(createDishType.fulfilled, (state, action) => {
         const dt = action.payload;
         if (!dt) return;

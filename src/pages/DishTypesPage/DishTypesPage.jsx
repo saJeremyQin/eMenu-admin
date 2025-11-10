@@ -139,11 +139,19 @@ const DishTypesPage = () => {
           </thead>
           <tbody>
             {dishTypes.length === 0 ? (
-              <tr>
-                <td colSpan="5" className={styles.emptyState}>
-                  No dish types found.
-                </td>
-              </tr>
+              loadingList ? (
+                <tr>
+                  <td colSpan="5" className={styles.emptyState}>
+                    Loading dish types...
+                  </td>
+                </tr>
+              ) : (
+                <tr>
+                  <td colSpan="5" className={styles.emptyState}>
+                    No dish types found.
+                  </td>
+                </tr>
+              )
             ) : (
               dishTypes.map((dishType, index) => (
                 <DishTypeRow
