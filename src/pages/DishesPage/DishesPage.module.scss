@@ -74,7 +74,7 @@
 
 .iconBtn { margin-right: 8px; padding:6px 8px; border-radius:4px; border:none; cursor:pointer; }
 
-.pagination { display:flex; justify-content: space-between; align-items:center; margin-top:12px; }
+.pagination { display:flex; justify-content: flex-end; align-items:center; margin-top:12px; gap: 24px;}
 .pageInput { width:48px; margin: 0 8px; }
 .pageBtn { padding:6px 10px; }
 .pageBtnActive { padding:6px 10px; background:#1890ff; color:white; border-radius:4px; }
@@ -166,14 +166,7 @@
 
 .modalClose { position:absolute; right:8px; top:8px; background:transparent; border:none; font-size:18px; }
 
-/* small upload button styles reused from CreateRestaurant */
-.uploadButtons {
-  display: flex;
-  gap: 1rem;
-  justify-content: center;
-  margin-bottom: 0.5rem;
-}
-
+/* button styles used in modal for image upload */
 .selectButton, .uploadButton {
   padding: 0.5rem 1rem;
   border: none;
@@ -191,4 +184,6 @@
 .selectButton { background: #6c757d; color: white; }
 .uploadButton { background: #28a745; color: white; }
 
-.richEditor { min-height: 160px; }
+/* pager layout helpers (used by the pagination stub) */
+.pagerLeft { color: #555; font-size: 14px; }
+.pagerRight { display:flex; gap:8px; align-items:center; }

@@ -206,16 +206,6 @@ const DishesPage = () => {
             <option key={opt.value} value={opt.value}>{opt.label}</option>
           ))}
         </select>
-
-        <label>Publish Status:</label>
-        <select>
-          <option value="">Select</option>
-          <option value="active">Published</option>
-          <option value="draft">Draft</option>
-        </select>
-
-        <button className={styles.searchBtn}>Search</button>
-        <button className={styles.resetBtn}>Reset</button>
       </div>
 
       <div className={styles.tableContainer}>
@@ -224,7 +214,7 @@ const DishesPage = () => {
             <tr>
               <th>Dish Name</th>
               <th>Dish Type</th>
-              <th>Publish Date</th>
+              <th>Create Date</th>
               <th>Status</th>
               <th>Actions</th>
             </tr>
@@ -240,11 +230,11 @@ const DishesPage = () => {
                   <td className={styles.titleCell}>{dish.name}</td>
                   <td>{dish.dishTypeId}</td>
                   <td>{dish.createdAt ? new Date(dish.createdAt).toLocaleDateString() : ''}</td>
-                  <td>{dish.isActive ? 'Published' : 'Draft'}</td>
+                  <td>{dish.isActive ? 'Active' : 'Disabled'}</td>
                   <td>
                     <button className={styles.iconBtn} onClick={() => openModal(dish)}>Edit</button>
                     <button className={styles.iconBtn} onClick={() => handleDelete(dish.id)}>Delete</button>
-                    <button className={styles.iconBtn} onClick={() => handleToggle(dish)}>{dish.isActive ? 'Unpublish' : 'Publish'}</button>
+                    <button className={styles.iconBtn} onClick={() => handleToggle(dish)}>{dish.isActive ? 'Disabled' : 'Active'}</button>
                   </td>
                 </tr>
               ))
@@ -332,8 +322,8 @@ const DishesPage = () => {
                 </div>
 
                 <div className={styles.formActions}>
-                  <button type="submit" className={styles.submitButton} disabled={saving}>{saving ? 'Publishing...' : 'Publish'}</button>
-                  <button type="button" className={styles.cancelButton} onClick={() => alert('Save as draft (example)')}>Draft</button>
+                  <button type="submit" className={styles.submitButton} disabled={saving}>{saving ? 'Creating...' : 'Create'}</button>
+                  <button type="button" className={styles.cancelButton} onClick={() => alert('Cancel creating (example)')}>Cancel</button>
                 </div>
               </form>
             </div>
