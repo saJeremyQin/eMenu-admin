@@ -1,0 +1,194 @@
+/* Reuse DishTypesPage visual language */
+.container {
+  padding: 24px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+
+  h1 {
+    font-size: 24px;
+    font-weight: 600;
+    margin: 0;
+    color: #333;
+  }
+}
+
+.addButton {
+  padding: 10px 24px;
+  background: #1890ff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 0.3s;
+
+  &:hover {
+    background: #40a9ff;
+  }
+
+  &:active {
+    background: #096dd9;
+  }
+}
+
+.filterRow {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.tableContainer {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+
+  thead {
+    background: #fafafa;
+    border-bottom: 1px solid #e8e8e8;
+  }
+
+  th, td {
+    padding: 12px 8px;
+    border-bottom: 1px solid #eee;
+    text-align: left;
+    font-size: 14px;
+    color: #333;
+  }
+}
+
+.titleCell { color: #1890ff; }
+
+.iconBtn { margin-right: 8px; padding:6px 8px; border-radius:4px; border:none; cursor:pointer; }
+
+.pagination { display:flex; justify-content: space-between; align-items:center; margin-top:12px; }
+.pageInput { width:48px; margin: 0 8px; }
+.pageBtn { padding:6px 10px; }
+.pageBtnActive { padding:6px 10px; background:#1890ff; color:white; border-radius:4px; }
+
+/* Modal and form reuse */
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: fadeIn 0.2s;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.modal {
+  background: white;
+  border-radius: 8px;
+  width: 90%;
+  max-width: 720px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.form { padding: 24px; }
+
+.formGroup { margin-bottom: 20px; }
+
+.formGroup label { display:block; margin-bottom:8px; font-size:14px; color:#333; font-weight:500; }
+
+.required { color: #ff4d4f; margin-right:4px; }
+
+.coverBox { width:160px; height:160px; border:1px dashed #d9d9d9; display:flex; align-items:center; justify-content:center; }
+
+.formActions { display:flex; justify-content:flex-end; gap:12px; padding-top:16px; border-top:1px solid #f0f0f0; }
+
+.cancelButton, .submitButton {
+  padding: 8px 24px;
+  border-radius: 4px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.3s;
+  border: none;
+}
+
+.cancelButton { background: white; border:1px solid #d9d9d9; color:#595959; }
+.modalClose { position:absolute; right:8px; top:8px; background:transparent; border:none; font-size:18px; }
+
+/* modal header and close button to match DishTypesPage */
+.modalHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 24px;
+  border-bottom: 1px solid #f0f0f0;
+
+  h2 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 600;
+    color: #333;
+  }
+}
+
+.closeButton {
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: transparent;
+  font-size: 20px;
+  color: #999;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: all 0.2s;
+
+  &:hover {
+    background: #f5f5f5;
+    color: #333;
+  }
+}
+
+.modalClose { position:absolute; right:8px; top:8px; background:transparent; border:none; font-size:18px; }
+
+/* small upload button styles reused from CreateRestaurant */
+.uploadButtons {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  margin-bottom: 0.5rem;
+}
+
+.selectButton, .uploadButton {
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 4px;
+  font-size: 0.925rem;
+  cursor: pointer;
+  transition: all 0.2s;
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+.selectButton { background: #6c757d; color: white; }
+.uploadButton { background: #28a745; color: white; }
+
+.richEditor { min-height: 160px; }
