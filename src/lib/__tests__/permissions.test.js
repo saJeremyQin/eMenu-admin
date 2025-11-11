@@ -49,10 +49,10 @@ describe('permissions: navigation visibility and feature access', () => {
   });
 
   it('create/edit/delete dish allowed for boss only', () => {
-    const create = cases(PERMISSIONS.createDish);
-    const edit = cases(PERMISSIONS.editDish);
-    const del = cases(PERMISSIONS.deleteDish);
-    const toggle = cases(PERMISSIONS.updateDishAvailability);
+  const create = cases(PERMISSIONS.createDish);
+  const edit = cases(PERMISSIONS.editDish);
+  const del = cases(PERMISSIONS.deleteDish);
+  const toggle = cases(PERMISSIONS.toggleDishStatus);
 
     for (const r of [create, edit, del, toggle]) {
       expect(r.boss && r.BOSS).toBe(true);

@@ -42,7 +42,6 @@ export const fetchDishTypes = createAsyncThunk(
           // items (causing AppSync GraphQL errors), synthesize a fallback timestamp so
           // the client doesn't crash. Also log a warning for backend investigation.
           if (it.createdAt == null) {
-            // eslint-disable-next-line no-console
             console.warn(`dishType ${it.id || '<unknown>'} missing createdAt; synthesizing timestamp`);
             return { ...it, createdAt: new Date().toISOString() };
           }

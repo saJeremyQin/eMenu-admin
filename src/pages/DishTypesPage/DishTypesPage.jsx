@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { hasPermission } from '../../lib/permissions';
 import styles from './DishTypesPage.module.scss';
@@ -83,7 +83,6 @@ const DishTypesPage = () => {
     } catch (error) {
       // better error reporting
       const errorMessage = error?.message || 'Save failed';
-      // eslint-disable-next-line no-console
       console.error('Save Error:', error);
       alert(`Save failed: ${errorMessage}`);
     } finally {
@@ -97,7 +96,6 @@ const DishTypesPage = () => {
     try {
       await dispatch(deleteDishType(dishTypeId)).unwrap();
     } catch (error) {
-      // eslint-disable-next-line no-console
       console.error('Delete Error:', error);
       alert('Delete failed, please try again');
     } finally {

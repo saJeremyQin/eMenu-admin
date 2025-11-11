@@ -24,7 +24,12 @@ export default function DishTypeRow({ index, dishType, onEdit, onDelete, onOptim
 
         // optimistic update: prefer parent callback if provided
         if (typeof opts.onOptimistic === 'function') {
-            try { opts.onOptimistic(id, newStatus); } catch (e) { /* swallow */ }
+            try {
+                opts.onOptimistic(id, newStatus);
+            } catch (e) { 
+                /* swallow */ 
+                console.log(e);  
+            }
         } else {
             dispatch(updateDishTypeLocal({ id, isActive: newStatus }));
         }
@@ -45,12 +50,16 @@ export default function DishTypeRow({ index, dishType, onEdit, onDelete, onOptim
                 }
             } catch (error) {
                 if (typeof opts.onRollback === 'function') {
-                    try { opts.onRollback(id); } catch (e) {}
+                    try { 
+                        opts.onRollback(id); 
+                    } catch (e) { 
+                        /* swallow */ 
+                        console.log(e);  
+                    }
                 } else {
                     // rollback local slice
                     dispatch(updateDishTypeLocal({ id, isActive: !!dishType.isActive }));
                 }
-                // eslint-disable-next-line no-console
                 console.error('Toggle row error', error);
                 alert('Failed to update status: ' + (error?.message || error));
             } finally {
@@ -65,7 +74,6 @@ export default function DishTypeRow({ index, dishType, onEdit, onDelete, onOptim
     const user = useSelector(selectUser);
     const role = user?.role;
     const canEdit = hasPermission('editDishType', role);
-    const canDelete = hasPermission('deleteDishType', role);
 
     return (
         <tr className={styles.row}>

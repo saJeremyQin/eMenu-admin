@@ -28,7 +28,7 @@ export const PERMISSIONS = {
   createDish: (role) => normalizeRole(role) === ROLES.BOSS,
   editDish: (role) => normalizeRole(role) === ROLES.BOSS,
   deleteDish: (role) => normalizeRole(role) === ROLES.BOSS,
-  updateDishAvailability: (role) => normalizeRole(role) === ROLES.BOSS,
+  toggleDishStatus: (role) => normalizeRole(role) === ROLES.BOSS,
   
   // Dish types (分类) permissions
   viewDishTypes: () => true, // Both can view dish types

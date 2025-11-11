@@ -149,7 +149,7 @@ Routes protected by `PermissionGuard`:
 | `createDish` | ✅ | ❌ | BOSS only |
 | `updateDish` | ✅ | ❌ | BOSS only |
 | `deleteDish` | ✅ | ❌ | BOSS only |
-| `updateDishAvailability` | ✅ | ❌ | BOSS only |
+| `toggleDishStatus` | ✅ | ❌ | BOSS only |
 | **Dish Type Management** | | | |
 | `listDishTypes` | ✅ | ✅ (read-only) | Both can view |
 | `createDishType` | ✅ | ❌ | BOSS only |
@@ -232,8 +232,8 @@ const deleteDish = async (args, identity) => {
   // ... rest of implementation
 };
 
-const updateDishAvailability = async (args, identity) => {
-  console.log('Executing updateDishAvailability...');
+const toggleDishStatus = async (args, identity) => {
+  console.log('Executing toggleDishStatus...');
   await requireRole(identity, ['boss']); // ⬅️ Add this check
   // ... rest of implementation
 };
@@ -278,7 +278,7 @@ const listOrders = async (event, identity) => {
 - `createDish`
 - `updateDish`
 - `deleteDish`
-- `updateDishAvailability`
+- `toggleDishStatus`
 - `createDishType`
 - `updateDishType`
 - `deleteDishType`
@@ -377,7 +377,7 @@ if (error.message.includes('PERMISSION_DENIED')) {
 - [ ] ❌ Cannot call `createDish` (returns PERMISSION_DENIED)
 - [ ] ❌ Cannot call `updateDish` (returns PERMISSION_DENIED)
 - [ ] ❌ Cannot call `deleteDish` (returns PERMISSION_DENIED)
-- [ ] ❌ Cannot call `updateDishAvailability` (returns PERMISSION_DENIED)
+- [ ] ❌ Cannot call `toggleDishStatus` (returns PERMISSION_DENIED)
 - [ ] ❌ Cannot call `createDishType` (returns PERMISSION_DENIED)
 - [ ] ❌ Cannot call `updateDishType` (returns PERMISSION_DENIED)
 - [ ] ❌ Cannot call `deleteDishType` (returns PERMISSION_DENIED)
