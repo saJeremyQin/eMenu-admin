@@ -25,7 +25,12 @@ export const fetchDishes = createAsyncThunk(
             description
             price
             isActive
-            dishTypeId
+            imageUrl
+            dishType {
+              id
+              name
+              alias
+            }
             createdAt
           }
         }

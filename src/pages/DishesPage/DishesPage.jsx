@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useMemo, useRef } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import styles from './DishesPage.module.scss';
+import rowStyles from '../../components/DishTypeRow/DishTypeRow.module.scss';
 import {
   fetchDishes,
   createDish,
@@ -60,10 +61,7 @@ const DishesPage = () => {
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm((s) => ({ ...s, [name]: value }));
-  };
-
-  // rich-text contentEditable handler
-  
+  };  
 
   // image upload helpers (adapted from CreateRestaurant)
   const handleDishFileSelect = () => {
@@ -226,15 +224,39 @@ const DishesPage = () => {
               <tr><td colSpan="5">No dishes found.</td></tr>
             ) : (
               rows.map((dish) => (
-                <tr key={dish.id}>
-                  <td className={styles.titleCell}>{dish.name}</td>
-                  <td>{dish.dishTypeId}</td>
-                  <td>{dish.createdAt ? new Date(dish.createdAt).toLocaleDateString() : ''}</td>
-                  <td>{dish.isActive ? 'Active' : 'Disabled'}</td>
-                  <td>
-                    <button className={styles.iconBtn} onClick={() => openModal(dish)}>Edit</button>
-                    <button className={styles.iconBtn} onClick={() => handleDelete(dish.id)}>Delete</button>
-                    <button className={styles.iconBtn} onClick={() => handleToggle(dish)}>{dish.isActive ? 'Disabled' : 'Active'}</button>
+                <tr key={dish.id} className={rowStyles.row}>
+                  <td className={`${styles.titleCell} ${rowStyles.nameCell}`}>{dish.name}</td>
+                  <td className={`${rowStyles.cell} ${rowStyles.aliasCell}`}>{dish.dishType?.name || ''}</td>
+                  <td className={rowStyles.cell}>{dish.createdAt ? new Date(dish.createdAt).toLocaleDateString() : ''}</td>
+                  <td className={`${rowStyles.cell} ${rowStyles.statusCell}`}>
+                    <div className={rowStyles.statusInner}>
+                      <span className={dish.isActive ? rowStyles.activeTag : rowStyles.disabledTag}>{dish.isActive ? 'Active' : 'Disabled'}</span>
+                      <label className={rowStyles.switch}>
+                        <input
+                          type="checkbox"
+                          checked={!!dish.isActive}
+                          onChange={() => handleToggle(dish)}
+                          aria-label={`Toggle ${dish.name} status`}
+                        />
+                        <span className={rowStyles.slider}></span>
+                      </label>
+                    </div>
+                  </td>
+                  <td className={`${rowStyles.cell} ${rowStyles.actions}`}>
+                    <button
+                      className={rowStyles.editButton}
+                      onClick={() => openModal(dish)}
+                      title="Edit"
+                    >
+                      ✏️
+                    </button>
+                    <button
+                      className={rowStyles.deleteButton}
+                      onClick={() => handleDelete(dish.id)}
+                      title="Delete"
+                    >
+                      🗑️
+                    </button>
                   </td>
                 </tr>
               ))
