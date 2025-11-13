@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useMemo, useRef } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import styles from './DishesPage.module.scss';
-import rowStyles from '../../components/DishTypeRow/DishTypeRow.module.scss';
+// row styles moved into this page's module; removed external import
 import {
   fetchDishes,
   createDish,
@@ -224,34 +224,34 @@ const DishesPage = () => {
               <tr><td colSpan="5">No dishes found.</td></tr>
             ) : (
               rows.map((dish) => (
-                <tr key={dish.id} className={rowStyles.row}>
-                  <td className={`${styles.titleCell} ${rowStyles.nameCell}`}>{dish.name}</td>
-                  <td className={`${rowStyles.cell} ${rowStyles.aliasCell}`}>{dish.dishType?.name || ''}</td>
-                  <td className={rowStyles.cell}>{dish.createdAt ? new Date(dish.createdAt).toLocaleDateString() : ''}</td>
-                  <td className={`${rowStyles.cell} ${rowStyles.statusCell}`}>
-                    <div className={rowStyles.statusInner}>
-                      <span className={dish.isActive ? rowStyles.activeTag : rowStyles.disabledTag}>{dish.isActive ? 'Active' : 'Disabled'}</span>
-                      <label className={rowStyles.switch}>
+                <tr key={dish.id} className={styles.row}>
+                  <td className={`${styles.titleCell} ${styles.nameCell}`}>{dish.name}</td>
+                  <td className={`${styles.cell} ${styles.aliasCell}`}>{dish.dishType?.name || ''}</td>
+                  <td className={styles.cell}>{dish.createdAt ? new Date(dish.createdAt).toLocaleDateString() : ''}</td>
+                  <td className={`${styles.cell} ${styles.statusCell}`}>
+                    <div className={styles.statusInner}>
+                      <span className={dish.isActive ? styles.activeTag : styles.disabledTag}>{dish.isActive ? 'Active' : 'Disabled'}</span>
+                      <label className={styles.switch}>
                         <input
                           type="checkbox"
                           checked={!!dish.isActive}
                           onChange={() => handleToggle(dish)}
                           aria-label={`Toggle ${dish.name} status`}
                         />
-                        <span className={rowStyles.slider}></span>
+                        <span className={styles.slider}></span>
                       </label>
                     </div>
                   </td>
-                  <td className={`${rowStyles.cell} ${rowStyles.actions}`}>
+                  <td className={`${styles.cell} ${styles.actions}`}>
                     <button
-                      className={rowStyles.editButton}
+                      className={styles.editButton}
                       onClick={() => openModal(dish)}
                       title="Edit"
                     >
                       ✏️
                     </button>
                     <button
-                      className={rowStyles.deleteButton}
+                      className={styles.deleteButton}
                       onClick={() => handleDelete(dish.id)}
                       title="Delete"
                     >
@@ -287,60 +287,60 @@ const DishesPage = () => {
               </div>
               <form onSubmit={handleSubmit} className={styles.form}>
 
-                <div className={styles.formGroup} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                  <label style={{ minWidth: 160 }}>
+                <div className={`${styles.formGroup} ${styles.formRow}`}>
+                  <label className={styles.formLabel}>
                     <span className={styles.required}>*</span> Dish Name
                   </label>
-                  <input name="name" value={form.name} onChange={handleChange} required style={{ flex: 1 }} />
+                  <input name="name" value={form.name} onChange={handleChange} required className={styles.formControl} />
                 </div>
 
-                <div className={styles.formGroup} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                  <label style={{ minWidth: 160 }}>
+                <div className={`${styles.formGroup} ${styles.formRow}`}>
+                  <label className={styles.formLabel}>
                     <span className={styles.required}>*</span> Dish Type
                   </label>
-                  <select name="dishTypeId" value={form.dishTypeId} onChange={handleChange} required style={{ flex: 1 }}>
+                  <select name="dishTypeId" value={form.dishTypeId} onChange={handleChange} required className={styles.formControl}>
                     <option value="">Select</option>
                     {dishTypeOptions.map((opt) => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
                   </select>
                 </div>
 
-                <div className={styles.formGroup} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                  <label style={{ minWidth: 160 }}>
+                <div className={`${styles.formGroup} ${styles.formRow}`}>
+                  <label className={styles.formLabel}>
                     <span className={styles.required}>*</span> Price
                   </label>
-                  <input name="price" value={form.price} onChange={handleChange} placeholder="Enter price in cents (e.g. 1000)" style={{ width: 240 }} />
-                  <div style={{ color: '#888', fontSize: 13 }}> (unit: cents)</div>
+                  <input name="price" value={form.price} onChange={handleChange} placeholder="Enter price in cents (e.g. 1000)" className={styles.formControlSmall} />
+                  <div className={styles.hintText}> (unit: cents)</div>
                 </div>
 
                 <div className={styles.formGroup}>
                   <label>
                     <span className={styles.required}>*</span> Dish Image
                   </label>
-                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
+                  <div className={styles.formColumn}>
                     <div>
                       {(dishPreviewUrl || dishUploadedImageUrl) ? (
-                        <img src={dishUploadedImageUrl || dishPreviewUrl} alt="Dish preview" style={{ width: 200, height: 200, objectFit: 'cover', borderRadius: 6 }} />
+                        <img src={dishUploadedImageUrl || dishPreviewUrl} alt="Dish preview" className={styles.imagePreview} />
                       ) : (
-                        <div className={styles.coverBox} style={{ width: 200, height: 200, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>+</div>
+                        <div className={styles.coverBox}>+</div>
                       )}
                     </div>
 
-                    <div style={{ display: 'flex', gap: 8 }}>
+                    <div className={styles.buttonRow}>
                       <button type="button" className={styles.selectButton} onClick={handleDishFileSelect}>Select Image</button>
                       <button type="button" className={styles.uploadButton} onClick={handleDishUpload} disabled={!dishSelectedFile || dishUploading}>{dishUploading ? 'Uploading...' : 'Upload'}</button>
                     </div>
 
-                    <input ref={dishFileInputRef} type="file" accept="image/*" onChange={handleDishFileChange} style={{ display: 'none' }} />
-                    <div style={{ color: '#888', fontSize: 12 }}>Supported: JPG/PNG. Max 5MB. Images processed in background.</div>
-                    {dishProcessing && <div style={{ marginTop: 8, color: '#999' }}>Processing...</div>}
+                    <input ref={dishFileInputRef} type="file" accept="image/*" onChange={handleDishFileChange} className={styles.hiddenInput} />
+                    <div className={styles.hintText}>Supported: JPG/PNG. Max 5MB. Images processed in background.</div>
+                    {dishProcessing && <div className={styles.processingText}>Processing...</div>}
                   </div>
                 </div>
 
-                <div className={styles.formGroup} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                  <label style={{ minWidth: 160 }}>
+                <div className={`${styles.formGroup} ${styles.formRow}`}>
+                  <label className={styles.formLabel}>
                     <span className={styles.required}>*</span> Dish Description
                   </label>
-                  <input name="description" value={form.description} onChange={handleChange} style={{ flex: 1 }} />
+                  <input name="description" value={form.description} onChange={handleChange} className={styles.formControl} />
                 </div>
 
                 <div className={styles.formActions}>
