@@ -31,7 +31,7 @@ export const fetchDishes = createAsyncThunk(
               name
               alias
             }
-            createdAt
+            updatedAt
           }
         }
       `;

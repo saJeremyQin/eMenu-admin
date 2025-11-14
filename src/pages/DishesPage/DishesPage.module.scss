@@ -68,6 +68,15 @@
     font-size: 14px;
     color: #333;
   }
+
+  /* Column width hints to balance spacing: image + name closer, status/actions wider */
+  /* Updated column order: 1=Image, 2=Name, 3=Type, 4=Date (updatedAt), 5=Status, 6=Actions */
+  thead th:nth-child(1), tbody td:nth-child(1) { width: 10%; }
+  thead th:nth-child(2), tbody td:nth-child(2) { width: 24%; }
+  thead th:nth-child(3), tbody td:nth-child(3) { width: 18%; }
+  thead th:nth-child(4), tbody td:nth-child(4) { width: 16%; }
+  thead th:nth-child(5), tbody td:nth-child(5) { width: 16%; }
+  thead th:nth-child(6), tbody td:nth-child(6) { width: 16%; }
 }
 
 .titleCell { color: #1890ff; }
@@ -222,4 +231,7 @@
 .buttonRow { display:flex; gap:8px; }
 .hintText { color:#888; font-size:13px; }
 .processingText { margin-top:8px; color:#999; }
+
+.noImage { color: #999; font-size: 13px; }
+.dishImage { width:64px; height:64px; object-fit:cover; border-radius:6px; }
 

@@ -41,10 +41,10 @@ const DishesPage = () => {
 
   const openModal = (dish = null) => {
     if (dish) {
-      setEditingDish(dish);
-      setForm({ name: dish.name || '', dishTypeId: dish.dishTypeId || '', price: dish.price || '', description: dish.description || '' });
-      // if editing and dish has image URL, show it
-      setDishUploadedImageUrl(dish.image || null);
+  setEditingDish(dish);
+  setForm({ name: dish.name || '', dishTypeId: dish.dishTypeId || '', price: dish.price || '', description: dish.description || '' });
+  // if editing and dish has imageUrl, show it
+  setDishUploadedImageUrl(dish.imageUrl || null);
     } else {
       setEditingDish(null);
       setForm({ name: '', dishTypeId: '', price: '', description: '' });
@@ -149,9 +149,9 @@ const DishesPage = () => {
     setSaving(true);
     try {
       if (editingDish) {
-        await dispatch(updateDish({ id: editingDish.id, dishData: { name: form.name, dishTypeId: form.dishTypeId, price: Number(form.price), description: form.description, image: dishUploadedImageUrl || editingDish.image || null } })).unwrap();
+  await dispatch(updateDish({ id: editingDish.id, dishData: { name: form.name, dishTypeId: form.dishTypeId, price: Number(form.price), description: form.description, imageUrl: dishUploadedImageUrl || editingDish.imageUrl || null } })).unwrap();
       } else {
-        await dispatch(createDish({ name: form.name, dishTypeId: form.dishTypeId, price: Number(form.price), description: form.description, image: dishUploadedImageUrl || null })).unwrap();
+  await dispatch(createDish({ name: form.name, dishTypeId: form.dishTypeId, price: Number(form.price), description: form.description, imageUrl: dishUploadedImageUrl || null })).unwrap();
       }
       closeModal();
     } catch (err) {
@@ -210,24 +210,34 @@ const DishesPage = () => {
         <table className={styles.table}>
           <thead>
             <tr>
+              <th>Image</th>
               <th>Dish Name</th>
               <th>Dish Type</th>
-              <th>Create Date</th>
+              <th>Updated At</th>
               <th>Status</th>
               <th>Actions</th>
             </tr>
           </thead>
           <tbody>
             {loading ? (
-              <tr><td colSpan="5">Loading...</td></tr>
+              <tr><td colSpan="6">Loading...</td></tr>
             ) : rows.length === 0 ? (
-              <tr><td colSpan="5">No dishes found.</td></tr>
+              <tr><td colSpan="6">No dishes found.</td></tr>
             ) : (
               rows.map((dish) => (
                 <tr key={dish.id} className={styles.row}>
+                  <td>
+                    {(() => {
+                      let src = dish.imageUrl || '';
+                      if (src && !src.startsWith('http')) {
+                        try { src = backendConfig.getS3PublicUrl(src); } catch (e) { /* fallback */ }
+                      }
+                      return src ? <img src={src} alt={dish.name} className={styles.dishImage} /> : <div className={styles.noImage}>No image</div>;
+                    })()}
+                  </td>
                   <td className={`${styles.titleCell} ${styles.nameCell}`}>{dish.name}</td>
                   <td className={`${styles.cell} ${styles.aliasCell}`}>{dish.dishType?.name || ''}</td>
-                  <td className={styles.cell}>{dish.createdAt ? new Date(dish.createdAt).toLocaleDateString() : ''}</td>
+                  <td className={styles.cell}>{(dish.updatedAt || dish.createdAt) ? new Date(dish.updatedAt || dish.createdAt).toLocaleDateString() : ''}</td>
                   <td className={`${styles.cell} ${styles.statusCell}`}>
                     <div className={styles.statusInner}>
                       <span className={dish.isActive ? styles.activeTag : styles.disabledTag}>{dish.isActive ? 'Active' : 'Disabled'}</span>
@@ -242,21 +252,23 @@ const DishesPage = () => {
                       </label>
                     </div>
                   </td>
-                  <td className={`${styles.cell} ${styles.actions}`}>
-                    <button
-                      className={styles.editButton}
-                      onClick={() => openModal(dish)}
-                      title="Edit"
-                    >
-                      ✏️
-                    </button>
-                    <button
-                      className={styles.deleteButton}
-                      onClick={() => handleDelete(dish.id)}
-                      title="Delete"
-                    >
-                      🗑️
-                    </button>
+                  <td className={styles.cell}>
+                    <div className={styles.actions}>
+                      <button
+                        className={styles.editButton}
+                        onClick={() => openModal(dish)}
+                        title="Edit"
+                      >
+                        ✏️
+                      </button>
+                      <button
+                        className={styles.deleteButton}
+                        onClick={() => handleDelete(dish.id)}
+                        title="Delete"
+                      >
+                        🗑️
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))
