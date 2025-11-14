@@ -126,7 +126,7 @@
 
 .coverBox { width:160px; height:160px; border:1px dashed #d9d9d9; display:flex; align-items:center; justify-content:center; }
 
-.formActions { display:flex; justify-content:flex-start; gap:12px; padding-top:16px; border-top:1px solid #f0f0f0; }
+.formActions { display:flex; justify-content:flex-end; gap:12px; padding-top:16px; border-top:1px solid #f0f0f0; }
 
 .cancelButton, .submitButton {
   padding: 8px 24px;
@@ -231,7 +231,21 @@
 .buttonRow { display:flex; gap:8px; }
 .hintText { color:#888; font-size:13px; }
 .processingText { margin-top:8px; color:#999; }
-
 .noImage { color: #999; font-size: 13px; }
 .dishImage { width:64px; height:64px; object-fit:cover; border-radius:6px; }
+
+/* Center the image upload column: image preview, buttons and help text */
+.formColumn {
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* center image and buttons horizontally */
+  gap: 12px;
+  text-align: center; /* center hint text */
+}
+
+.formColumn .buttonRow {
+  justify-content: center; /* ensure buttons are centered inside the column */
+}
+
+.formColumn .hintText { text-align: center; }
 

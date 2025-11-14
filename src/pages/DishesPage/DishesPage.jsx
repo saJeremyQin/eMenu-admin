@@ -41,10 +41,10 @@ const DishesPage = () => {
 
   const openModal = (dish = null) => {
     if (dish) {
-  setEditingDish(dish);
-  setForm({ name: dish.name || '', dishTypeId: dish.dishTypeId || '', price: dish.price || '', description: dish.description || '' });
-  // if editing and dish has imageUrl, show it
-  setDishUploadedImageUrl(dish.imageUrl || null);
+      setEditingDish(dish);
+      setForm({ name: dish.name || '', dishTypeId: dish.dishTypeId || '', price: dish.price || '', description: dish.description || '' });
+      // if editing and dish has imageUrl, show it
+      setDishUploadedImageUrl(dish.imageUrl || null);
     } else {
       setEditingDish(null);
       setForm({ name: '', dishTypeId: '', price: '', description: '' });
@@ -149,9 +149,9 @@ const DishesPage = () => {
     setSaving(true);
     try {
       if (editingDish) {
-  await dispatch(updateDish({ id: editingDish.id, dishData: { name: form.name, dishTypeId: form.dishTypeId, price: Number(form.price), description: form.description, imageUrl: dishUploadedImageUrl || editingDish.imageUrl || null } })).unwrap();
+        await dispatch(updateDish({ id: editingDish.id, dishData: { name: form.name, dishTypeId: form.dishTypeId, price: Number(form.price), description: form.description, imageUrl: dishUploadedImageUrl || editingDish.imageUrl || null } })).unwrap();
       } else {
-  await dispatch(createDish({ name: form.name, dishTypeId: form.dishTypeId, price: Number(form.price), description: form.description, imageUrl: dishUploadedImageUrl || null })).unwrap();
+        await dispatch(createDish({ name: form.name, dishTypeId: form.dishTypeId, price: Number(form.price), description: form.description, imageUrl: dishUploadedImageUrl || null })).unwrap();
       }
       closeModal();
     } catch (err) {
