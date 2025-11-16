@@ -203,6 +203,13 @@
 .cell { vertical-align: middle; }
 .aliasCell { color: #555; }
 
+/* Price column - right align and fixed width for currency formatting */
+.priceCell {
+  text-align: right;
+  font-weight: 600;
+  color: #222;
+}
+
 /* Status column */
 .statusCell { min-width: 160px; }
 .statusInner { display:flex; align-items:center; gap:6px; }

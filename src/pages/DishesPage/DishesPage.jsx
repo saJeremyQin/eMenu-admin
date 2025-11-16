@@ -191,6 +191,7 @@ const DishesPage = () => {
               <th>Image</th>
               <th>Dish Name</th>
               <th>Dish Type</th>
+              <th>Price</th>
               <th>Updated At</th>
               <th>Status</th>
               <th>Actions</th>
@@ -215,6 +216,9 @@ const DishesPage = () => {
                   </td>
                   <td className={`${styles.titleCell} ${styles.nameCell}`}>{dish.name}</td>
                   <td className={`${styles.cell} ${styles.aliasCell}`}>{dish.dishType?.name || ''}</td>
+                  <td className={`${styles.cell} ${styles.priceCell}`}>
+                    {typeof dish.price === 'number' ? new Intl.NumberFormat('en-AU', { style: 'currency', currency: 'AUD' }).format(dish.price / 100) : ''}
+                  </td>
                   <td className={styles.cell}>{(dish.updatedAt || dish.createdAt) ? new Date(dish.updatedAt || dish.createdAt).toLocaleDateString() : ''}</td>
                   <td className={`${styles.cell} ${styles.statusCell}`}>
                     <div className={styles.statusInner}>
@@ -327,7 +331,9 @@ const DishesPage = () => {
                 </div>
 
                 <div className={styles.formActions}>
-                  <button type="submit" className={styles.submitButton} disabled={saving}>{saving ? 'Creating...' : 'Create'}</button>
+                  <button type="submit" className={styles.submitButton} disabled={saving}>
+                    {saving ? (editingDish ? 'Updating...' : 'Creating...') : (editingDish ? 'Update' : 'Create')}
+                  </button>
                   <button type="button" className={styles.cancelButton} onClick={() => alert('Cancel creating (example)')}>Cancel</button>
                 </div>
               </form>
