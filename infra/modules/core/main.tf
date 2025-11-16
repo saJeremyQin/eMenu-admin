@@ -59,6 +59,7 @@ locals {
   backend_config = {
     presigned_url_generator_url = data.terraform_remote_state.backend.outputs.presigned_url_generator_url
     restaurant_assets_bucket    = data.terraform_remote_state.backend.outputs.restaurant_assets_bucket_name
+    dish_images_bucket          = data.terraform_remote_state.backend.outputs.dish_images_bucket_name
   }
 }
 
@@ -122,4 +123,9 @@ output "backend_presigned_url_generator" {
 output "backend_s3_bucket_name" {
   description = "S3 bucket name from eMenu-backend"
   value       = local.backend_config.restaurant_assets_bucket
+}
+
+output "backend_dish_images_bucket_name" {
+  description = "Dish images S3 bucket name from eMenu-backend"
+  value       = local.backend_config.dish_images_bucket
 }

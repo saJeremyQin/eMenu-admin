@@ -61,6 +61,11 @@ variable "restaurant_assets_bucket" {
   type        = string
 }
 
+variable "dish_images_bucket" {
+  description = "S3 bucket name for dish images from eMenu-backend"
+  type        = string
+}
+
 
 module "ecs" {
   source          = "./ecs"
@@ -80,7 +85,8 @@ module "ecs" {
 
   # Backend configuration from remote state
   presigned_url_generator = var.presigned_url_generator_url
-  s3_bucket_name         = var.restaurant_assets_bucket
+  dish_images_bucket     = var.dish_images_bucket
+  restaurant_assets_bucket = var.restaurant_assets_bucket
 
   env = var.environment
 }

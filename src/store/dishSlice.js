@@ -12,6 +12,21 @@ function getApiClient() {
   return __apiClient;
 }
 
+// Normalize dish input to match server-side `DishInput` shape.
+// We standardize on `imageUrl` for Dish images, but accept legacy `image` for compatibility.
+function buildDishInput(dishData) {
+  return {
+    dishTypeId: dishData.dishTypeId,
+    name: dishData.name,
+    price: dishData.price,
+    // prefer explicit imageUrl, fall back to legacy `image`
+    imageUrl: dishData.imageUrl || dishData.image || null,
+    description: dishData.description,
+    sortOrder: dishData.sortOrder,
+    isActive: dishData.isActive,
+  };
+}
+
 // Thunks
 export const fetchDishes = createAsyncThunk(
   "dishes/fetchDishes",
@@ -26,6 +41,7 @@ export const fetchDishes = createAsyncThunk(
             price
             isActive
             imageUrl
+            createdAt
             dishType {
               id
               name
@@ -68,12 +84,30 @@ export const createDish = createAsyncThunk(
             description
             price
             isActive
-            dishTypeId
+            imageUrl
+            dishType {
+              id
+              name
+            }
             createdAt
           }
         }
       `;
-      const resp = await getApiClient().graphql({ query: mutation, variables: { input: dishData } });
+      // Build an input object that matches the server-side `DishInput` exactly.
+      // We standardize on `imageUrl` for dishes; keep fallback for legacy `image`.
+      const inputPayload = buildDishInput(dishData);
+      console.log('inputPayload is', inputPayload);
+      
+
+      const resp = await getApiClient().graphql({ query: mutation, variables: { input: inputPayload } });
+      if (resp?.errors && resp.errors.length) {
+        // Log full GraphQL response for debugging in dev so callers can inspect exact error objects
+        // (This helps diagnose AppSync resolver errors such as auth, missing restaurant, or invalid DishType)
+        // eslint-disable-next-line no-console
+        console.error('createDish GraphQL response with errors:', resp);
+        const msg = resp.errors[0]?.message || 'GraphQL error';
+        return thunkAPI.rejectWithValue(msg);
+      }
       return resp?.data?.createDish || null;
     } catch (e) {
       return thunkAPI.rejectWithValue(e.message || "Failed to create dish");
@@ -93,12 +127,21 @@ export const updateDish = createAsyncThunk(
             description
             price
             isActive
-            dishTypeId
+            dishType {
+              id
+              name
+            }
             updatedAt
           }
         }
       `;
-      const resp = await getApiClient().graphql({ query: mutation, variables: { id, input: dishData } });
+      // Normalize update payload to match server-side `DishInput` shape
+      const inputPayload = buildDishInput(dishData);
+
+      const resp = await getApiClient().graphql({ query: mutation, variables: { id, input: inputPayload } });
+      if (resp?.errors && resp.errors.length) {
+        return thunkAPI.rejectWithValue(resp.errors[0]?.message || 'GraphQL error');
+      }
       return resp?.data?.updateDish || null;
     } catch (e) {
       return thunkAPI.rejectWithValue(e.message || "Failed to update dish");
@@ -118,6 +161,9 @@ export const deleteDish = createAsyncThunk(
         }
       `;
       const resp = await getApiClient().graphql({ query: mutation, variables: { id } });
+      if (resp?.errors && resp.errors.length) {
+        return thunkAPI.rejectWithValue(resp.errors[0]?.message || 'GraphQL error');
+      }
       return resp?.data?.deleteDish || null;
     } catch (e) {
       return thunkAPI.rejectWithValue(e.message || "Failed to delete dish");
@@ -139,6 +185,9 @@ export const toggleDishStatus = createAsyncThunk(
         }
       `;
       const resp = await getApiClient().graphql({ query: mutation, variables: { id, isActive } });
+      if (resp?.errors && resp.errors.length) {
+        return thunkAPI.rejectWithValue(resp.errors[0]?.message || 'GraphQL error');
+      }
       return resp?.data?.toggleDishStatus || null;
     } catch (e) {
       return thunkAPI.rejectWithValue(e.message || "Failed to toggle dish status");

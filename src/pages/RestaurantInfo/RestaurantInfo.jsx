@@ -61,13 +61,15 @@ const RestaurantInfo = () => {
             name
             address
             phone
-            image
+            logoUrl
           }
         }
       `;
+      // include current logoUrl in the input if present (no uploader in this view)
+      const inputPayload = { ...formData, logoUrl: restaurant.logoUrl || restaurant.imageUrl || restaurant.image || null };
       const res = await client.graphql({ 
         query: mutation, 
-        variables: { input: formData } 
+        variables: { input: inputPayload } 
       });
       const updated = res?.data?.updateRestaurantInfo;
       alert('Restaurant updated successfully!');
@@ -142,10 +144,10 @@ const RestaurantInfo = () => {
           <h3>Restaurant Logo</h3>
           
           <div className={styles.imagePreview}>
-            {restaurant.image ? (
-              <img 
-                src={restaurant.image} 
-                alt="Restaurant logo" 
+            {(restaurant.logoUrl || restaurant.imageUrl || restaurant.image) ? (
+              <img
+                src={restaurant.logoUrl || restaurant.imageUrl || restaurant.image}
+                alt="Restaurant logo"
                 className={styles.previewImage}
               />
             ) : (

@@ -20,7 +20,7 @@ const listDishesQuery = `
       name
       description
       price
-      image
+      imageUrl
       restaurantId
       dishType { # <-- Request the nested DishType object
         id
@@ -159,8 +159,8 @@ function DishManagerPage() {
                       <td>${dish.price}</td>
                       <td>{dish.description || 'N/A'}</td>
                       <td>
-                        {dish.image ? (
-                          <img src={dish.image} alt={dish.name} className={styles.dishImage} />
+                        {(dish.imageUrl || dish.image) ? (
+                          <img src={dish.imageUrl || dish.image} alt={dish.name} className={styles.dishImage} />
                         ) : (
                           <span className={styles.noImage}>No Image</span>
                         )}

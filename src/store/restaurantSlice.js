@@ -24,7 +24,7 @@ export const fetchRestaurant = createAsyncThunk(
             name
             address
             phone
-            image
+            logoUrl
             subscriptionPlan
             subscriptionExpiry
           }
@@ -43,6 +43,9 @@ const initialState = {
   name: null,
   address: null,
   phone: null,
+  // prefer new field `logoUrl`, keep legacy `image` for compatibility
+  logoUrl: null,
+  imageUrl: null,
   image: null,
   subscriptionPlan: null,
   subscriptionExpiry: null,
@@ -92,6 +95,9 @@ const restaurantSlice = createSlice({
           state.name = p.name ?? state.name;
           state.address = p.address ?? state.address;
           state.phone = p.phone ?? state.phone;
+          // populate logoUrl preferring new field, but keep backwards compatibility
+          state.logoUrl = p.logoUrl ?? p.imageUrl ?? p.image ?? state.logoUrl;
+          state.imageUrl = p.imageUrl ?? state.imageUrl;
           state.image = p.image ?? state.image;
           state.subscriptionPlan = p.subscriptionPlan ?? state.subscriptionPlan;
           state.subscriptionExpiry = p.subscriptionExpiry ?? state.subscriptionExpiry;

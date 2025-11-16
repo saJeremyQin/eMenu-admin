@@ -23,8 +23,13 @@ resource "aws_ecs_task_definition" "this" {
           value = var.presigned_url_generator
         },
         {
-          name  = "VITE_S3_BUCKET_NAME"
-          value = var.s3_bucket_name
+          name  = "VITE_DISH_IMAGES_BUCKET"
+          value = var.dish_images_bucket
+        }
+        ,
+        {
+          name  = "VITE_RESTAURANT_ASSETS_BUCKET"
+          value = var.restaurant_assets_bucket
         }
       ],
       logConfiguration = {

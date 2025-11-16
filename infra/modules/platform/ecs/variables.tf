@@ -48,7 +48,12 @@ variable "presigned_url_generator" {
   type        = string
 }
 
-variable "s3_bucket_name" {
-  description = "S3 bucket name for restaurant assets from eMenu-backend"
+variable "dish_images_bucket" {
+  description = "S3 bucket name for dish images from eMenu-backend"
+  type        = string
+}
+
+variable "restaurant_assets_bucket" {
+  description = "S3 bucket name for restaurant assets (original bucket)"
   type        = string
 }

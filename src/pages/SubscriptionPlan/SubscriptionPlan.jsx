@@ -42,7 +42,7 @@ const SubscriptionPlan = () => {
               name 
               address 
               phone 
-              image 
+              logoUrl
               subscriptionPlan 
               subscriptionExpiry
             }

@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo, useRef } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import styles from './DishesPage.module.scss';
 // row styles moved into this page's module; removed external import
@@ -15,6 +15,7 @@ import {
 import { selectDishTypeOptions, fetchDishTypes as fetchDishTypesThunk } from '../../store/dishTypeSlice';
 import backendConfig from '../../config/backend-config';
 import { getCurrentUser, fetchAuthSession } from 'aws-amplify/auth';
+import ImageUploader from '../../components/ImageUploader/ImageUploader';
 
 const DishesPage = () => {
   const dispatch = useDispatch();
@@ -26,13 +27,8 @@ const DishesPage = () => {
   const [editingDish, setEditingDish] = useState(null);
   const [form, setForm] = useState({ name: '', dishTypeId: '', price: '', description: '' });
   const [saving, setSaving] = useState(false);
-  // image upload states (re-using CreateRestaurant upload flow)
-  const [dishSelectedFile, setDishSelectedFile] = useState(null);
-  const [dishPreviewUrl, setDishPreviewUrl] = useState(null);
-  const [dishUploading, setDishUploading] = useState(false);
+  // image upload state: only keep the final uploaded image URL used when creating new dishes
   const [dishUploadedImageUrl, setDishUploadedImageUrl] = useState(null);
-  const [dishProcessing, setDishProcessing] = useState(false);
-  const dishFileInputRef = useRef(null);
 
   useEffect(() => {
     dispatch(fetchDishes());
@@ -40,6 +36,8 @@ const DishesPage = () => {
   }, [dispatch]);
 
   const openModal = (dish = null) => {
+    // refresh dish types each time modal opens to avoid stale options (helps prevent server-side DishType not found errors)
+    dispatch(fetchDishTypesThunk());
     if (dish) {
       setEditingDish(dish);
       setForm({ name: dish.name || '', dishTypeId: dish.dishTypeId || '', price: dish.price || '', description: dish.description || '' });
@@ -63,57 +61,8 @@ const DishesPage = () => {
     setForm((s) => ({ ...s, [name]: value }));
   };  
 
-  // image upload helpers (adapted from CreateRestaurant)
-  const handleDishFileSelect = () => {
-    dishFileInputRef.current?.click();
-  };
-
-  const handleDishFileChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      if (!file.type.startsWith('image/')) {
-        alert('Please select an image file');
-        return;
-      }
-      if (file.size > 5 * 1024 * 1024) {
-        alert('File size must be less than 5MB');
-        return;
-      }
-      setDishSelectedFile(file);
-      const reader = new FileReader();
-      reader.onload = (ev) => setDishPreviewUrl(ev.target.result);
-      reader.readAsDataURL(file);
-    }
-  };
-
-  const checkDishImageProcessing = async (processedKey, attempts = 0) => {
-    if (attempts > 10) {
-      setDishProcessing(false);
-      alert('Image processing is taking longer than expected. You can still save the dish.');
-      return;
-    }
-
-    try {
-      const publicUrl = backendConfig.getS3PublicUrl(processedKey);
-      const response = await fetch(publicUrl, { method: 'HEAD' });
-      if (response.ok) {
-        setDishProcessing(false);
-        setDishUploadedImageUrl(publicUrl);
-      } else {
-        throw new Error('Image not ready');
-      }
-    } catch (err) {
-      setTimeout(() => checkDishImageProcessing(processedKey, attempts + 1), 2000);
-    }
-  };
-
-  const handleDishUpload = async () => {
-    if (!dishSelectedFile) {
-      alert('Please select a file first');
-      return;
-    }
-    setDishUploading(true);
-    setDishProcessing(false);
+  // uploadFn for ImageUploader: presign -> PUT -> poll processed key -> return public URL
+  const uploadFn = async (file, onProgress) => {
     try {
       const currentUser = await getCurrentUser();
       const session = await fetchAuthSession({ forceRefresh: false });
@@ -121,31 +70,60 @@ const DishesPage = () => {
       if (!token) throw new Error('Unable to get authentication token');
 
       const lambdaUrl = backendConfig.presignedUrlGenerator;
-      const response = await fetch(lambdaUrl, {
+      const presignResp = await fetch(lambdaUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ authToken: token, fileName: dishSelectedFile.name, contentType: dishSelectedFile.type })
+        body: JSON.stringify({ authToken: token, fileName: file.name, contentType: file.type, imageType: 'dish-image' })
       });
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error || 'Failed to get presigned URL');
+      if (!presignResp.ok) {
+        const err = await presignResp.json().catch(() => ({}));
+        throw new Error(err.error || 'Failed to get presigned URL');
       }
-      const { presignedUrl, s3Key, expectedProcessedKey } = await response.json();
-      const uploadResponse = await fetch(presignedUrl, { method: 'PUT', headers: { 'Content-Type': dishSelectedFile.type }, body: dishSelectedFile });
+      const { presignedUrl, s3Key, expectedProcessedKey } = await presignResp.json();
+      console.log('the url is', presignedUrl);
+      
+      const uploadResponse = await fetch(presignedUrl, { method: 'PUT', headers: { 'Content-Type': file.type }, body: file });
       if (!uploadResponse.ok) throw new Error('Failed to upload file to S3');
-      setDishProcessing(true);
-      setTimeout(() => checkDishImageProcessing(expectedProcessedKey), 3000);
-      alert('Image uploaded successfully! Processing in background...');
-    } catch (error) {
-      console.error('Upload error:', error);
-      alert('Failed to upload image. Please try again.');
-    } finally {
-      setDishUploading(false);
+
+      // Reduce polling to minimize S3 HEAD requests: 3 total attempts (1 initial + 2 retries) at 2s interval
+      const maxAttempts = 3;
+      let attempts = 0;
+      const publicUrl = backendConfig.getS3PublicUrl(expectedProcessedKey);
+      // wait a short delay before first check
+      await new Promise((res) => setTimeout(res, 2000));
+      while (attempts < maxAttempts) {
+        try {
+          const head = await fetch(publicUrl, { method: 'HEAD' });
+          if (head.ok) {
+            // store for create-case
+            setDishUploadedImageUrl(publicUrl);
+            return publicUrl;
+          }
+        } catch (e) {}
+        attempts += 1;
+        // wait 2 seconds between attempts
+        await new Promise((res) => setTimeout(res, 2000));
+      }
+      throw new Error('Image processing timeout');
+    } catch (err) {
+      console.error('uploadFn error:', err);
+      throw err;
     }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    // client-side validation: ensure a dish type is selected and exists in known options
+    if (!form.dishTypeId) {
+      alert('请选择菜品分类');
+      return;
+    }
+    const matchedType = dishTypeOptions.find((opt) => opt.value === form.dishTypeId);
+    if (!matchedType) {
+      // The selected dishTypeId isn't in the current options. Avoid sending a request that will fail server-side.
+      alert('所选菜品分类不存在或不属于当前餐厅，请重新选择');
+      return;
+    }
     setSaving(true);
     try {
       if (editingDish) {
@@ -155,9 +133,9 @@ const DishesPage = () => {
       }
       closeModal();
     } catch (err) {
-      // eslint-disable-next-line no-console
       console.error('Save dish error', err);
-      alert('Save failed');
+      // show GraphQL/server error message when available
+      alert(err?.message || err || 'Save failed');
     } finally {
       setSaving(false);
     }
@@ -329,22 +307,15 @@ const DishesPage = () => {
                     <span className={styles.required}>*</span> Dish Image
                   </label>
                   <div className={styles.formColumn}>
-                    <div>
-                      {(dishPreviewUrl || dishUploadedImageUrl) ? (
-                        <img src={dishUploadedImageUrl || dishPreviewUrl} alt="Dish preview" className={styles.imagePreview} />
-                      ) : (
-                        <div className={styles.coverBox}>+</div>
-                      )}
-                    </div>
-
-                    <div className={styles.buttonRow}>
-                      <button type="button" className={styles.selectButton} onClick={handleDishFileSelect}>Select Image</button>
-                      <button type="button" className={styles.uploadButton} onClick={handleDishUpload} disabled={!dishSelectedFile || dishUploading}>{dishUploading ? 'Uploading...' : 'Upload'}</button>
-                    </div>
-
-                    <input ref={dishFileInputRef} type="file" accept="image/*" onChange={handleDishFileChange} className={styles.hiddenInput} />
-                    <div className={styles.hintText}>Supported: JPG/PNG. Max 5MB. Images processed in background.</div>
-                    {dishProcessing && <div className={styles.processingText}>Processing...</div>}
+                    <ImageUploader
+                      imageUrl={editingDish?.imageUrl || dishUploadedImageUrl}
+                      uploadFn={uploadFn}
+                      onUpload={(url) => {
+                        setEditingDish(prev => prev ? ({...prev, imageUrl: url}) : prev);
+                        setDishUploadedImageUrl(url);
+                      }}
+                      previewSize={160}
+                    />
                   </div>
                 </div>
 

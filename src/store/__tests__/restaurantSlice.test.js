@@ -26,6 +26,8 @@ describe('restaurantSlice reducers', () => {
       name: null,
       address: null,
       phone: null,
+      logoUrl: null,
+      imageUrl: null,
       image: null,
       subscriptionPlan: null,
       subscriptionExpiry: null,

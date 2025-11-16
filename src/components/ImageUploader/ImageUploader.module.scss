@@ -1,0 +1,77 @@
+.uploader { 
+    display:flex; 
+    flex-direction:column; 
+    align-items:center; 
+    gap:12px; 
+}
+.previewWrap { 
+    display:flex; 
+    align-items:center; 
+    justify-content:center; 
+    background:#fafafa; 
+    border-radius:8px; 
+    overflow:hidden;
+    position: relative;
+ }
+.processingOverlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0,0,0,0.45);
+    color: #fff;
+}
+.processingText {
+    font-size: 14px;
+    padding: 8px 12px;
+    background: rgba(0,0,0,0.5);
+    border-radius: 6px;
+}
+.preview { 
+    width:100%; 
+    height:100%; 
+    object-fit:cover; 
+    display:block; 
+}
+.noImage { 
+    color:#999; 
+    font-size:13px; 
+}
+.hiddenInput { 
+    display:none !important; 
+}
+
+.buttonRow { 
+    display:flex; 
+    gap:8px; 
+}
+.selectButton { 
+    padding:8px 12px; 
+    background:#6c757d; 
+    color:#fff; 
+    border:none; 
+    border-radius:6px; 
+    cursor:pointer; 
+}
+.uploadButton { 
+    padding:8px 12px; 
+    background:#28a745; 
+    color:#fff; 
+    border:none; 
+    border-radius:6px; 
+    cursor:pointer; 
+}
+.hintText { 
+    color:#888; 
+    font-size:13px; 
+    text-align:center; 
+    max-width:320px; 
+}
+.errorText { 
+    color:#ff4d4f; 
+    font-size:13px; 
+}
