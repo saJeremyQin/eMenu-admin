@@ -34,50 +34,68 @@ const CreateRestaurant = () => {
   const uploadFn = async (file, onProgress) => {
     // onProgress is currently unused but kept for API compatibility
     try {
+      const now = () => new Date().toISOString();
+      console.log(`[CreateRestaurant.uploadFn] starting upload for file=${file.name} at ${now()}`);
       const currentUser = await getCurrentUser();
       const session = await fetchAuthSession({ forceRefresh: false });
       const token = session.tokens?.idToken?.toString();
       if (!token) throw new Error('Unable to get authentication token');
 
       const lambdaUrl = backendConfig.presignedUrlGenerator;
+      const presignPayload = { authToken: token, fileName: file.name, contentType: file.type, imageType: 'restaurant-logo' };
+      console.log('[CreateRestaurant.uploadFn] presign request payload:', presignPayload, 'at', now());
       const presignResp = await fetch(lambdaUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ authToken: token, fileName: file.name, contentType: file.type, imageType: 'restaurant-logo' })
+        body: JSON.stringify(presignPayload)
       });
+      console.log('[CreateRestaurant.uploadFn] presign response status:', presignResp.status, 'at', now());
       if (!presignResp.ok) {
         const err = await presignResp.json().catch(() => ({}));
         throw new Error(err.error || 'Failed to get presigned URL');
       }
 
-      const { presignedUrl, s3Key, expectedProcessedKey } = await presignResp.json();
+  const responseData = await presignResp.json();
+  const { presignedUrl, s3Key, expectedProcessedKey, s3Bucket } = responseData;
+  console.log('[CreateRestaurant.uploadFn] presign response body:', { presignedUrl, s3Key, expectedProcessedKey, s3Bucket }, 'at', now());
 
       const uploadResponse = await fetch(presignedUrl, { method: 'PUT', headers: { 'Content-Type': file.type }, body: file });
+      console.log('[CreateRestaurant.uploadFn] upload completed with status:', uploadResponse.status, 'for s3Key:', s3Key, 'at', now());
       if (!uploadResponse.ok) throw new Error('Failed to upload file to S3');
 
-  // Poll for processed file
-  // Reduce polling to minimize S3 HEAD requests: 3 total attempts (1 initial + 2 retries) at 2s interval
-  const maxAttempts = 3;
+      // Poll for processed file
+      // Match DishesPage polling: 3 total attempts (1 initial + 2 retries) at 2s interval
+      const maxAttempts = 3;
       let attempts = 0;
-      const publicUrl = backendConfig.getS3PublicUrl(expectedProcessedKey);
-      // wait a short delay before first check
+      // Use the bucket returned by the presign generator to construct the public URL.
+      const bucketForPublic = s3Bucket || backendConfig.restaurantAssetsBucket;
+      const publicUrl = `https://${bucketForPublic}.s3.${backendConfig.s3Region}.amazonaws.com/${expectedProcessedKey}`;
+          // wait a short delay before first check
       await new Promise((res) => setTimeout(res, 2000));
+      console.log('[CreateRestaurant.uploadFn] begin polling for processed object at', publicUrl, 'at', now());
       while (attempts < maxAttempts) {
         try {
+          const attemptNum = attempts + 1;
           const head = await fetch(publicUrl, { method: 'HEAD' });
+          console.log(`[CreateRestaurant.uploadFn] HEAD attempt ${attemptNum} status=${head.status} at ${now()}`);
           if (head.ok) {
+            console.log('[CreateRestaurant.uploadFn] processed object available at', publicUrl, 'at', now());
+            // store for create-case so UI can reference the processed public URL
+            setUploadedImageUrl(publicUrl);
             return publicUrl;
           }
         } catch (e) {
+          console.log('[CreateRestaurant.uploadFn] HEAD attempt error:', e, 'at', now());
           // ignore and retry
         }
         attempts += 1;
         // wait 2 seconds between attempts
         await new Promise((res) => setTimeout(res, 2000));
       }
+      console.log('[CreateRestaurant.uploadFn] image processing timeout after attempts=', attempts, 'at', now());
       throw new Error('Image processing timeout');
     } catch (err) {
-      console.error('uploadFn error:', err);
+      console.error('[CreateRestaurant.uploadFn] error:', err);
       throw err;
     }
   };
