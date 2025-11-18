@@ -321,7 +321,7 @@ const DishesPage = () => {
                   <button type="submit" className={styles.submitButton} disabled={saving}>
                     {saving ? (editingDish ? 'Updating...' : 'Creating...') : (editingDish ? 'Update' : 'Create')}
                   </button>
-                  <button type="button" className={styles.cancelButton} onClick={() => alert('Cancel creating (example)')}>Cancel</button>
+                  <button type="button" className={styles.cancelButton} onClick={closeModal}>Cancel</button>
                 </div>
               </form>
             </div>
