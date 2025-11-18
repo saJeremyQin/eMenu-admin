@@ -40,7 +40,9 @@ const DishesPage = () => {
     dispatch(fetchDishTypesThunk());
     if (dish) {
       setEditingDish(dish);
-      setForm({ name: dish.name || '', dishTypeId: dish.dishTypeId || '', price: dish.price || '', description: dish.description || '' });
+      // fetched Dish objects include a nested `dishType` object (with `id`),
+      // not always a `dishTypeId` scalar. Prefer nested id when available.
+      setForm({ name: dish.name || '', dishTypeId: dish.dishType?.id || dish.dishTypeId || '', price: dish.price || '', description: dish.description || '' });
       // if editing and dish has imageUrl, show it
       setDishUploadedImageUrl(dish.imageUrl || null);
     } else {
@@ -182,7 +184,14 @@ const DishesPage = () => {
     }
   };
 
-  const rows = useMemo(() => dishes || [], [dishes]);
+  const allRows = useMemo(() => dishes || [], [dishes]);
+  // client-side filter state for Dish Type ('' means all)
+  const [filterDishTypeId, setFilterDishTypeId] = useState('');
+  const filteredRows = useMemo(() => {
+    if (!filterDishTypeId) return allRows;
+    // fetched dishes include `dishType` object; compare against its id when present
+    return allRows.filter((d) => (d.dishType?.id || d.dishTypeId) === filterDishTypeId);
+  }, [allRows, filterDishTypeId]);
 
   return (
     <div className={styles.container}>
@@ -193,12 +202,13 @@ const DishesPage = () => {
 
       <div className={styles.filterRow}>
         <label>Dish Type:</label>
-        <select>
-          <option value="">Select</option>
+        <select value={filterDishTypeId} onChange={(e) => setFilterDishTypeId(e.target.value)}>
+          <option value="">All</option>
           {dishTypeOptions.map((opt) => (
             <option key={opt.value} value={opt.value}>{opt.label}</option>
           ))}
         </select>
+        <button type="button" onClick={() => setFilterDishTypeId('')}>Reset</button>
       </div>
 
       <div className={styles.tableContainer}>
@@ -216,11 +226,11 @@ const DishesPage = () => {
           </thead>
           <tbody>
             {loading ? (
-              <tr><td colSpan="6">Loading...</td></tr>
-            ) : rows.length === 0 ? (
-              <tr><td colSpan="6">No dishes found.</td></tr>
-            ) : (
-              rows.map((dish) => (
+                <tr><td colSpan="7">Loading...</td></tr>
+              ) : filteredRows.length === 0 ? (
+                <tr><td colSpan="7">No dishes found.</td></tr>
+              ) : (
+                filteredRows.map((dish) => (
                 <tr key={dish.id} className={styles.row}>
                   <td>
                     {(() => {
@@ -279,7 +289,7 @@ const DishesPage = () => {
       {/* Pagination stub matching screenshot */}
       <div className={styles.pagination}>
         <div className={styles.pagerLeft}>
-          Go to <input type="number" defaultValue={1} className={styles.pageInput} /> page, total {rows.length} items
+          Go to <input type="number" defaultValue={1} className={styles.pageInput} /> page, total {filteredRows.length} items
         </div>
         <div className={styles.pagerRight}>
           <button disabled className={styles.pageBtn}>&lt;</button>
