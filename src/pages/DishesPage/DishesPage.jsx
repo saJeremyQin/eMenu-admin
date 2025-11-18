@@ -208,7 +208,7 @@ const DishesPage = () => {
             <option key={opt.value} value={opt.value}>{opt.label}</option>
           ))}
         </select>
-        <button type="button" onClick={() => setFilterDishTypeId('')}>Reset</button>
+        <button type="button" className={styles.resetButton} onClick={() => setFilterDishTypeId('')}>Reset</button>
       </div>
 
       <div className={styles.tableContainer}>
