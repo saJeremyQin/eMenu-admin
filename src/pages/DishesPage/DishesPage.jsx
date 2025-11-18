@@ -16,6 +16,7 @@ import { selectDishTypeOptions, fetchDishTypes as fetchDishTypesThunk } from '..
 import backendConfig from '../../config/backend-config';
 import { getCurrentUser, fetchAuthSession } from 'aws-amplify/auth';
 import ImageUploader from '../../components/ImageUploader/ImageUploader';
+import DishRow from '../../components/DishRow/DishRow';
 
 const DishesPage = () => {
   const dispatch = useDispatch();
@@ -230,57 +231,16 @@ const DishesPage = () => {
               ) : filteredRows.length === 0 ? (
                 <tr><td colSpan="7">No dishes found.</td></tr>
               ) : (
-                filteredRows.map((dish) => (
-                <tr key={dish.id} className={styles.row}>
-                  <td>
-                    {(() => {
-                      let src = dish.imageUrl || '';
-                      if (src && !src.startsWith('http')) {
-                        try { src = backendConfig.getS3PublicUrl(src); } catch (e) { /* fallback */ }
-                      }
-                      return src ? <img src={src} alt={dish.name} className={styles.dishImage} /> : <div className={styles.noImage}>No image</div>;
-                    })()}
-                  </td>
-                  <td className={`${styles.titleCell} ${styles.nameCell}`}>{dish.name}</td>
-                  <td className={`${styles.cell} ${styles.aliasCell}`}>{dish.dishType?.name || ''}</td>
-                  <td className={`${styles.cell} ${styles.priceCell}`}>
-                    {typeof dish.price === 'number' ? new Intl.NumberFormat('en-AU', { style: 'currency', currency: 'AUD' }).format(dish.price / 100) : ''}
-                  </td>
-                  <td className={styles.cell}>{(dish.updatedAt || dish.createdAt) ? new Date(dish.updatedAt || dish.createdAt).toLocaleDateString() : ''}</td>
-                  <td className={`${styles.cell} ${styles.statusCell}`}>
-                    <div className={styles.statusInner}>
-                      <span className={dish.isActive ? styles.activeTag : styles.disabledTag}>{dish.isActive ? 'Active' : 'Disabled'}</span>
-                      <label className={styles.switch}>
-                        <input
-                          type="checkbox"
-                          checked={!!dish.isActive}
-                          onChange={() => handleToggle(dish)}
-                          aria-label={`Toggle ${dish.name} status`}
-                        />
-                        <span className={styles.slider}></span>
-                      </label>
-                    </div>
-                  </td>
-                  <td className={styles.cell}>
-                    <div className={styles.actions}>
-                      <button
-                        className={styles.editButton}
-                        onClick={() => openModal(dish)}
-                        title="Edit"
-                      >
-                        ✏️
-                      </button>
-                      <button
-                        className={styles.deleteButton}
-                        onClick={() => handleDelete(dish.id)}
-                        title="Delete"
-                      >
-                        🗑️
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))
+                filteredRows.map((dish, i) => (
+                  <DishRow
+                    key={dish.id}
+                    index={i}
+                    dish={dish}
+                    onEdit={(d) => openModal(d)}
+                    onDelete={(d) => handleDelete(d.id)}
+                    onOptimistic={(id, isActive) => dispatch(updateDishLocal({ id, isActive }))}
+                  />
+                ))
             )}
           </tbody>
         </table>
