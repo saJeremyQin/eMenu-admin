@@ -13,7 +13,7 @@ function daysLeft(expiryISO) {
 }
 
 function formatDate(expiryISO) {
-  if (!expiryISO) return 'N/A';
+  if (!expiryISO) return 'Never expires';
   try {
     return new Date(expiryISO).toLocaleDateString(undefined, {
       year: 'numeric',
@@ -45,6 +45,8 @@ const SubscriptionPlan = () => {
               logoUrl
               subscriptionPlan 
               subscriptionExpiry
+              waiterLimit
+              tableLimit
             }
           }
         `;
@@ -61,41 +63,55 @@ const SubscriptionPlan = () => {
     run();
   }, []);
 
-  const handleUpgradeSuccess = async ({ plan, months, expiryISO }) => {
-    // 尝试调用真实后端（若未实现则前端乐观更新）
+  const handleUpgradeSuccess = async ({ plan, expiryISO, paymentTransactionId }) => {
+    // 优先调用真实后端；失败时做前端乐观更新
     try {
       const mutation = /* GraphQL */ `
-        mutation UpdateSubscription($plan: SubscriptionPlan!, $months: Int!) {
-          updateSubscription(plan: $plan, months: $months) {
+        mutation UpdateRestaurantSubscriptionPlan($input: SubscriptionUpgradeInput!) {
+          updateRestaurantSubscriptionPlan(input: $input) {
             id
             subscriptionPlan
             subscriptionExpiry
+            waiterLimit
+            tableLimit
           }
         }
       `;
       const resp = await client.graphql({
         query: mutation,
-        variables: { plan, months }
+        variables: {
+          input: {
+            subscriptionPlan: plan,
+            subscriptionExpiry: plan === 'FREE' ? null : expiryISO,
+            paymentTransactionId,
+          },
+        },
       });
-      const r = resp?.data?.updateSubscription;
+      const r = resp?.data?.updateRestaurantSubscriptionPlan;
       if (r) {
         setRestaurant(prev => ({
           ...prev,
           subscriptionPlan: r.subscriptionPlan,
-          subscriptionExpiry: r.subscriptionExpiry
+          subscriptionExpiry: r.subscriptionExpiry,
+          waiterLimit: r.waiterLimit,
+          tableLimit: r.tableLimit,
         }));
         return;
       }
       setRestaurant(prev => ({
         ...prev,
         subscriptionPlan: plan,
-        subscriptionExpiry: expiryISO
+        subscriptionExpiry: plan === 'FREE' ? null : expiryISO,
+        waiterLimit: plan === 'FREE' ? 1 : 20,
+        tableLimit: plan === 'FREE' ? 20 : 100,
       }));
     } catch {
       setRestaurant(prev => ({
         ...prev,
         subscriptionPlan: plan,
-        subscriptionExpiry: expiryISO
+        subscriptionExpiry: plan === 'FREE' ? null : expiryISO,
+        waiterLimit: plan === 'FREE' ? 1 : 20,
+        tableLimit: plan === 'FREE' ? 20 : 100,
       }));
     }
   };
@@ -103,7 +119,7 @@ const SubscriptionPlan = () => {
   if (loading) return <div className={styles.container}><p>Loading...</p></div>;
   if (!restaurant) return <div className={styles.container}><p>No restaurant found.</p></div>;
 
-  const plan = restaurant.subscriptionPlan || 'BASIC'; // 原样展示
+  const plan = restaurant.subscriptionPlan || 'FREE';
   const expiryText = formatDate(restaurant.subscriptionExpiry);
   const left = daysLeft(restaurant.subscriptionExpiry);
 
@@ -118,43 +134,36 @@ const SubscriptionPlan = () => {
           {restaurant.subscriptionExpiry && (
             <div className={styles.metaRow}><span>Days left:</span> <strong>{left} day{left === 1 ? '' : 's'}</strong></div>
           )}
+          <div className={styles.metaRow}><span>Waiters:</span> <strong>{restaurant.waiterLimit ?? '-'}</strong></div>
+          <div className={styles.metaRow}><span>Tables:</span> <strong>{restaurant.tableLimit ?? '-'}</strong></div>
         </div>
       </div>
 
       <div className={styles.compareSection}>
         <h2 className={styles.compareTitle}>What you get</h2>
         <div className={styles.planCardsRowCentered}>
-          <div className={styles.planCardBasic}>
-            <div className={styles.cardHeader}>BASIC</div>
+          <div className={styles.planCardFree}>
+            <div className={styles.cardHeader}>FREE</div>
             <div className={styles.price}>Free</div>
-            <button className={styles.disabledBtn} disabled>Get Started</button>
+            <button className={styles.disabledBtn} disabled>{plan === 'FREE' ? 'Current Plan' : 'Included'}</button>
             <ul>
-              <li>Menu items limit: 10</li>
-              <li>Images: limited</li>
-              <li>Analytics: Not included</li>
-              <li>Theme: Default only</li>
+              <li>Waiters: 1</li>
+              <li>Tables: up to 20</li>
+              <li>Validity: perpetual</li>
+              <li>Order ownership: own ongoing orders only</li>
             </ul>
           </div>
-          <div className={styles.planCardPremium}>
-            <div className={styles.cardHeader}>PREMIUM</div>
+          <div className={styles.planCardPro}>
+            <div className={styles.cardHeader}>PRO</div>
             <div className={styles.price}>$9.99<span className={styles.perMonth}>/month</span></div>
-            <button className={styles.primaryBtn} onClick={() => { setSelectedPlan('PREMIUM'); setShowModal(true); }}>Get Started</button>
+            <button className={styles.primaryBtn} onClick={() => { setSelectedPlan('PRO'); setShowModal(true); }}>
+              {plan === 'PRO' ? 'Extend Plan' : 'Upgrade'}
+            </button>
             <ul>
-              <li>Menu items: Unlimited</li>
-              <li>Images: Unlimited</li>
-              <li>Analytics: Included</li>
-              <li>Themes: Customizable</li>
-            </ul>
-          </div>
-          <div className={styles.planCardUltimate}>
-            <div className={styles.cardHeader}>ULTIMATE</div>
-            <div className={styles.price}>$29.99<span className={styles.perMonth}>/month</span></div>
-            <button className={styles.primaryBtn} onClick={() => { setSelectedPlan('ULTIMATE'); setShowModal(true); }}>Get Started</button>
-            <ul>
-              <li>Menu items: 1000</li>
-              <li>Images: Unlimited</li>
-              <li>Analytics: Advanced</li>
-              <li>Themes: All features</li>
+              <li>Waiters: up to 20</li>
+              <li>Tables: up to 100</li>
+              <li>Order ownership: shared ongoing orders across waiters</li>
+              <li>Supports waiter pickup of pending orders</li>
             </ul>
           </div>
         </div>

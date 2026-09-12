@@ -4,8 +4,7 @@ import styles from './UpgradeModal.module.scss';
 import { fakeCharge } from '../../lib/payments/mockPayment';
 
 const PRICING = {
-  PREMIUM: 9.99,
-  ULTIMATE: 29.99
+  PRO: 9.99,
 };
 
 
@@ -18,7 +17,7 @@ function addMonthsISO(fromISO, months) {
 
 
 const UpgradeModal = ({ open, onClose, selectedPlan, onSuccess }) => {
-  const plan = selectedPlan || 'PREMIUM';
+  const plan = selectedPlan || 'PRO';
   const [months, setMonths] = React.useState(1);
   const [loading, setLoading] = React.useState(false);
   if (!open) return null;
@@ -29,7 +28,7 @@ const UpgradeModal = ({ open, onClose, selectedPlan, onSuccess }) => {
     setLoading(true);
     try {
       // 1) 假支付
-      await fakeCharge({
+      const payment = await fakeCharge({
         amount: total,
         currency: 'AUD',
         description: `${plan} x ${months} month(s)`
@@ -37,7 +36,12 @@ const UpgradeModal = ({ open, onClose, selectedPlan, onSuccess }) => {
       // 2) 计算新的过期时间（前端侧）
       const expiryISO = addMonthsISO(new Date().toISOString(), months);
       // 3) 回调让父组件尝试调用后端（若未实现则乐观更新）
-      onSuccess?.({ plan, months, expiryISO });
+      onSuccess?.({
+        plan,
+        months,
+        expiryISO,
+        paymentTransactionId: payment?.chargeId || null,
+      });
     } catch (e) {
       alert('Payment failed (mock): ' + (e.message || 'Unknown'));
     } finally {

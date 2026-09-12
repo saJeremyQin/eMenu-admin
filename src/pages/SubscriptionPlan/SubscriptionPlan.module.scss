@@ -65,7 +65,7 @@
 	margin-top: 24px;
 	margin-bottom: 32px;
 }
-.planCardBasic, .planCardPremium, .planCardUltimate {
+.planCardFree, .planCardPro {
 		flex: 1 1 0;
 		border-radius: 18px;
 		padding: 32px 24px 28px 24px;
@@ -80,19 +80,15 @@
 		position: relative;
 		background-clip: padding-box;
 	}
-	.planCardBasic {
+	.planCardFree {
 		background: linear-gradient(135deg, #e9f2ff 80%, #f6fbff 100%);
 		border: 2px solid #c7e0fa;
 	}
-	.planCardPremium {
+	.planCardPro {
 		background: linear-gradient(135deg, #fff7ec 80%, #fffbe6 100%);
 		border: 2px solid #ffd8a8;
 	}
-	.planCardUltimate {
-		background: linear-gradient(135deg, #e6ffe6 80%, #f6fff6 100%);
-		border: 2px solid #a8ffd8;
-	}
-	.planCardBasic:hover, .planCardPremium:hover, .planCardUltimate:hover {
+	.planCardFree:hover, .planCardPro:hover {
 		box-shadow: 0 12px 32px rgba(20,115,230,0.14), 0 3px 16px rgba(0,0,0,0.08);
 		transform: translateY(-2px) scale(1.03);
 		z-index: 2;
@@ -142,19 +138,19 @@
 		margin-top: 4px;
 		cursor: not-allowed;
 	}
-	.planCardBasic ul, .planCardPremium ul, .planCardUltimate ul {
+	.planCardFree ul, .planCardPro ul {
 		margin: 0;
 		padding-left: 0;
 		font-size: 15px;
 		text-align: left;
 		list-style: none;
 	}
-	.planCardBasic ul li, .planCardPremium ul li, .planCardUltimate ul li {
+	.planCardFree ul li, .planCardPro ul li {
 		margin-bottom: 8px;
 		position: relative;
 		padding-left: 22px;
 	}
-	.planCardBasic ul li::before, .planCardPremium ul li::before, .planCardUltimate ul li::before {
+	.planCardFree ul li::before, .planCardPro ul li::before {
 		content: '\2713';
 		position: absolute;
 		left: 0;
@@ -162,7 +158,7 @@
 		font-size: 1rem;
 		top: 0;
 	}
-	.planCardBasic ul li::before, .planCardPremium ul li::before, .planCardUltimate ul li::before {
+	.planCardFree ul li::before, .planCardPro ul li::before {
 		content: '\2713';
 		position: absolute;
 		left: 0;
