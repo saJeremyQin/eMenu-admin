@@ -8,6 +8,28 @@ import path from 'path';
 const AUTH_DIR = path.join(process.cwd(), 'test-results', 'playwright', '.auth');
 const AUTH_FILE = path.join(AUTH_DIR, 'user.json');
 
+async function collectFailureDiagnostics(page: { url: () => string; screenshot: (arg0: { path: string; fullPage: boolean }) => Promise<void>; content: () => Promise<string> }) {
+  const screenshotPath = path.join(AUTH_DIR, 'auth-setup-failure.png');
+  const htmlPath = path.join(AUTH_DIR, 'auth-setup-failure.html');
+
+  try {
+    await page.screenshot({ path: screenshotPath, fullPage: true });
+    console.error('auth.setup: saved screenshot to', screenshotPath);
+  } catch (err) {
+    console.error('auth.setup: failed to save screenshot:', err);
+  }
+
+  try {
+    const html = await page.content();
+    fs.writeFileSync(htmlPath, html, 'utf8');
+    console.error('auth.setup: saved page HTML to', htmlPath);
+  } catch (err) {
+    console.error('auth.setup: failed to save HTML snapshot:', err);
+  }
+
+  console.error('auth.setup: current URL on failure:', page.url());
+}
+
 export default async function globalSetup(config: FullConfig) {
   // Ensure auth dir exists
   fs.mkdirSync(AUTH_DIR, { recursive: true });
@@ -41,19 +63,50 @@ export default async function globalSetup(config: FullConfig) {
   const base = config.projects?.[0]?.use?.baseURL || process.env.E2E_BASE_URL || 'http://localhost:5173';
   await page.goto(`${base}/auth`);
 
-  // Fill in the login form using the known test account (hard-coded for now).
-  // NOTE: This was temporarily hard-coded to match the earlier passing test run.
+  // Fill in the login form and wait for either success or a visible auth error/challenge.
   try {
     await page.getByPlaceholder('Username or Email').fill(username);
     await page.getByPlaceholder(/password/i).fill(password);
     await page.getByRole('button', { name: /sign in/i }).click();
 
-    // Wait for the app to reflect that the user is authenticated (header shows Logout)
-    console.log('auth.setup: submitted sign-in, waiting for Logout button');
-    await page.getByRole('button', { name: 'Logout' }).waitFor({ timeout: 30000 });
-    console.log('auth.setup: detected Logout button — login appears successful');
+    console.log('auth.setup: submitted sign-in, waiting for auth outcome');
+
+    const logoutButton = page.getByRole('button', { name: /^logout$/i });
+    const authErrorAlert = page.locator('.amplify-alert, [data-amplify-alert]');
+    const challengeHint = page.getByText(
+      /confirm sign in|verification code|enter code|new password required|mfa|incorrect username or password|not authorized/i,
+      { exact: false }
+    );
+
+    const outcome = await Promise.race([
+      logoutButton.waitFor({ state: 'visible', timeout: 30000 }).then(() => 'success' as const),
+      authErrorAlert.first().waitFor({ state: 'visible', timeout: 30000 }).then(() => 'error' as const),
+      challengeHint.first().waitFor({ state: 'visible', timeout: 30000 }).then(() => 'challenge' as const),
+    ]);
+
+    if (outcome !== 'success') {
+      await collectFailureDiagnostics(page);
+
+      let visibleMessage = '';
+      try {
+        visibleMessage = await authErrorAlert.first().innerText({ timeout: 1000 });
+      } catch {
+        try {
+          visibleMessage = await challengeHint.first().innerText({ timeout: 1000 });
+        } catch {
+          visibleMessage = '';
+        }
+      }
+
+      throw new Error(
+        `Authentication did not reach logged-in state. Outcome=${outcome}. Visible message=${visibleMessage || 'N/A'}`
+      );
+    }
+
+    console.log('auth.setup: detected Logout button, login appears successful');
   } catch (e) {
-    console.error('Auth setup: failed to fill login form:', e);
+    await collectFailureDiagnostics(page);
+    console.error('auth.setup: sign-in flow failed:', e);
     await browser.close();
     throw e;
   }
