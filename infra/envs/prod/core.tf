@@ -1,1 +1,2 @@
-// the infra will be relaced 
+// the infra will be relaced
+// a better way is to use tfvars file 
