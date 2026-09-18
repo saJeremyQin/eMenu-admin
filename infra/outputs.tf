@@ -1,22 +1,22 @@
 
 # Key info about core module, will be used by plaform module
 output "vpc_id" {
-  description = "The ID of the main VPC for dev environment."
+  description = "The ID of the main VPC for the active environment."
   value       = module.core_infra.vpc_id
 }
 
 output "public_subnet_ids" {
-  description = "List of public subnet IDs for dev environment."
+  description = "List of public subnet IDs for the active environment."
   value       = module.core_infra.public_subnet_ids
 }
 
 output "alb_security_group_id" {
-  description = "The ID of the ALB security group for dev environment."
+  description = "The ID of the ALB security group for the active environment."
   value       = module.core_infra.alb_security_group_id
 }
 
 output "fargate_security_group_id" {
-  description = "The ID of the Fargate task security group for dev environment."
+  description = "The ID of the Fargate task security group for the active environment."
   value       = module.core_infra.fargate_security_group_id
 }
 
@@ -29,12 +29,12 @@ output "public_subnet_b_id" {
 }
 
 output "ecr_repository_url" {
-  description = "The URL of the ECR repository for dev environment."
+  description = "The URL of the ECR repository for the active environment."
   value       = module.core_infra.ecr_repository_url
 }
 
 output "ecr_repository_name" {
-  description = "The name of the ECR repository for dev environment."
+  description = "The name of the ECR repository for the active environment."
   value       = module.core_infra.ecr_repository_name
 }
 
@@ -42,12 +42,12 @@ output "ecr_repository_name" {
 # output "cognito_identity_pool_id" 已移除
 
 output "ecs_cluster_name" {
-  description = "The name of the ECS cluster for dev environment."
+  description = "The name of the ECS cluster for the active environment."
   value       = module.platform_infra.ecs_cluster_name
 }
 
 output "ecs_service_name" {
-  description = "The name of the ECS service for dev environment."
+  description = "The name of the ECS service for the active environment."
   value       = module.platform_infra.ecs_service_name
 }
 
@@ -58,8 +58,8 @@ output "alb_dns_name" {
 
 # ECR Registry URL parameter for container deployment
 resource "aws_ssm_parameter" "ssm_ecr_registry_url" {
-  description = "ECR Registry URL for ${var.env} environment"
-  name        = "/${var.repo_name}/${var.env}/ecr_registry_url"
+  description = "ECR Registry URL for ${var.environment} environment"
+  name        = "/${var.repo_name}/${var.environment}/ecr_registry_url"
   value       = module.core_infra.ecr_repository_url
   type        = "String"
   overwrite   = true  

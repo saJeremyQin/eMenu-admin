@@ -1,12 +1,12 @@
 
 // Define ECS cluster resource
 resource "aws_ecs_cluster" "this" {
-  name = "${var.repo_name}-${var.env}-cluster"
+  name = "${var.repo_name}-${var.environment}-cluster"
 
   tags = {
-    Name = "${var.repo_name}-${var.env}-cluster"
-    Project = "${var.repo_name}-${var.env}-project"
-    Service = "${var.repo_name}-${var.env}-service"
+    Name = "${var.repo_name}-${var.environment}-cluster"
+    Project = "${var.repo_name}-${var.environment}-project"
+    Service = "${var.repo_name}-${var.environment}-service"
   }
 }
 

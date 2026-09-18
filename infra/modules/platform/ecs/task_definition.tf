@@ -1,6 +1,6 @@
 # define ECS task definition, including container image, port mappling, CPU/Memory
 resource "aws_ecs_task_definition" "this" {
-  family                   = "${var.service_name}-${var.env}" 
+  family                   = "${var.service_name}-${var.environment}" 
   requires_compatibilities = [ "FARGATE" ]
   network_mode             = "awsvpc"
   cpu                      = "256"
@@ -10,7 +10,7 @@ resource "aws_ecs_task_definition" "this" {
 
   container_definitions = jsonencode([
     {
-      name  = "${var.service_name}-${var.env}" 
+      name  = "${var.service_name}-${var.environment}" 
       image = var.container_image   
       portMappings = [
         {
@@ -37,7 +37,7 @@ resource "aws_ecs_task_definition" "this" {
         options = {
           awslogs-group         = aws_cloudwatch_log_group.ecs_task_logs.name
           awslogs-region        = "ap-southeast-2"
-          awslogs-stream-prefix = "${var.repo_name}-${var.env}"
+          awslogs-stream-prefix = "${var.repo_name}-${var.environment}"
         }
       }
     }
@@ -65,6 +65,6 @@ resource "aws_iam_role_policy_attachment" "ecs_task_execution_policy" {
 }
 
 resource "aws_cloudwatch_log_group" "ecs_task_logs" {
-  name = "ecs/${var.repo_name}-${var.env}" # Must match your task definition
+  name = "ecs/${var.repo_name}-${var.environment}" # Must match your task definition
   retention_in_days = 7 # Or your desired retention
 }

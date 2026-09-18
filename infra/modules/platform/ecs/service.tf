@@ -1,6 +1,6 @@
 # Define ECS service, deploy task definition to cluster, and attach to ALB
 resource "aws_ecs_service" "this" {
-  name            = "${var.repo_name}-${var.env}-service"
+  name            = "${var.repo_name}-${var.environment}-service"
   cluster         = aws_ecs_cluster.this.id
   task_definition = aws_ecs_task_definition.this.arn
 
@@ -15,7 +15,7 @@ resource "aws_ecs_service" "this" {
 
   load_balancer {
     target_group_arn = aws_alb_target_group.main-tg.arn
-    container_name = "${var.repo_name}-${var.env}"
+    container_name = "${var.repo_name}-${var.environment}"
     container_port = 80
   }
 

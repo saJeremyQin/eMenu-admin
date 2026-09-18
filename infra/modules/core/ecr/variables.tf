@@ -13,7 +13,7 @@ variable "repo_name" {
   type = string
 }
 
-variable "env" {
+variable "environment" {
   description = "the name of deployment environemnt, such as dev, prod..."
   default = "dev"
   type = string

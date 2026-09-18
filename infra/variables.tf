@@ -1,7 +1,11 @@
 
-variable "env" {
+variable "environment" {
   description = "The name of the deployment environement, dev, prod..."
   default = "dev"
+  type = string
+}
+
+variable "region" {
   type = string
 }
 

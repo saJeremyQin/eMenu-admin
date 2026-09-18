@@ -31,7 +31,7 @@ variable "container_port" {
   
 }
 
-variable "env" {
+variable "environment" {
   
 }
 

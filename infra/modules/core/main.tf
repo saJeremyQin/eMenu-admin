@@ -30,7 +30,7 @@ module "ecr" {
   source     = "./ecr"
   app_name   = var.app_name
   repo_name  = var.repo_name
-  env        = var.environment
+  environment = var.environment
   aws_region = var.region
 }
 
@@ -49,8 +49,8 @@ data "terraform_remote_state" "backend" {
   backend = "s3"
   config = {
     bucket = "emenu-terraform-state-bucket"
-    key    = "emenu_backend/dev/terraform.tfstate"  # eMenu-backend 项目的 state 路径
-    region = "ap-southeast-2"
+    key    = "emenu_backend/${var.environment}/terraform.tfstate"  # eMenu-backend 项目的 state 路径
+    region = var.region
   }
 }
 

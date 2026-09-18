@@ -88,7 +88,7 @@ module "ecs" {
   dish_images_bucket     = var.dish_images_bucket
   restaurant_assets_bucket = var.restaurant_assets_bucket
 
-  env = var.environment
+  environment = var.environment
 }
 
 output "ecs_cluster_name" {
