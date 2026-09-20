@@ -17,17 +17,17 @@ output "internet_gateway_id" {
 
 output "public_subnet_a_id" {
   description = "The ID of public subnet A."
-  value       = aws_subnet.public_a.id
+  value       = aws_subnet.public["public-a"].id
 }
 
 output "public_subnet_b_id" {
   description = "The ID of public subnet B."
-  value       = aws_subnet.public_b.id
+  value       = aws_subnet.public["public-b"].id
 }
 
 output "public_subnet_ids" {
   description = "A list of public subnet IDs."
-  value       = [aws_subnet.public_a.id, aws_subnet.public_b.id]
+  value       = [for subnet_name in sort(keys(aws_subnet.public)) : aws_subnet.public[subnet_name].id]
 }
 
 output "public_route_table_id" {

@@ -8,17 +8,17 @@ resource "aws_ecs_service" "this" {
   launch_type   = "FARGATE"
 
   network_configuration {
-    subnets          = [ var.public_subnet_a_id, var.public_subnet_b_id ]
-    security_groups  = [ var.fargate_sg_id]
-    assign_public_ip = true 
+    subnets          = [var.public_subnet_a_id, var.public_subnet_b_id]
+    security_groups  = [var.fargate_sg_id]
+    assign_public_ip = true
   }
 
   load_balancer {
     target_group_arn = aws_alb_target_group.main-tg.arn
-    container_name = "${var.repo_name}-${var.environment}"
-    container_port = 80
+    container_name   = "${var.repo_name}-${var.environment}"
+    container_port   = 80
   }
 
-  depends_on = [ aws_alb_listener.this ]
+  depends_on = [aws_alb_listener.this]
 
 }

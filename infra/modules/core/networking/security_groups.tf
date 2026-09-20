@@ -2,7 +2,7 @@ resource "aws_security_group" "alb" {
   name        = "alb-sg"
   description = "Security group for ALB"
   vpc_id      = aws_vpc.this.id
-  
+
   ingress {
     description = "Allow HTTP from anywhere"
     from_port   = 80
@@ -26,9 +26,9 @@ resource "aws_security_group" "alb" {
     protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
   }
-  
+
   tags = {
-    Name = "alb-sg"
+    Name = "${local.resource_prefix}-alb-sg"
   }
 }
 
@@ -54,6 +54,6 @@ resource "aws_security_group" "fargate" {
   }
 
   tags = {
-    Name = "fargate-sg"
+    Name = "${local.resource_prefix}-fargate-sg"
   }
 }

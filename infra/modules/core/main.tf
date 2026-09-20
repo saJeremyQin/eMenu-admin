@@ -16,22 +16,38 @@ variable "app_name" {
 
 variable "repo_name" {
   default = "emenu-admin"
-  type    = string 
+  type    = string
+}
+
+variable "vpc_cidr" {
+  description = "CIDR block for the shared VPC."
+  type        = string
+}
+
+variable "public_subnets" {
+  description = "Public subnet definitions passed down to the networking module."
+  type = list(object({
+    name              = string
+    cidr_block        = string
+    availability_zone = string
+  }))
 }
 
 module "networking" {
-  source     = "./networking"
-  app_name   = var.app_name
-  repo_name  = var.repo_name
-  aws_region = var.region
+  source         = "./networking"
+  app_name       = var.app_name
+  repo_name      = var.repo_name
+  environment    = var.environment
+  vpc_cidr       = var.vpc_cidr
+  public_subnets = var.public_subnets
 }
 
 module "ecr" {
-  source     = "./ecr"
-  app_name   = var.app_name
-  repo_name  = var.repo_name
+  source      = "./ecr"
+  app_name    = var.app_name
+  repo_name   = var.repo_name
   environment = var.environment
-  aws_region = var.region
+  aws_region  = var.region
 }
 
 # S3 和 Lambda 资源已迁移到 eMenu-backend 项目
@@ -49,7 +65,7 @@ data "terraform_remote_state" "backend" {
   backend = "s3"
   config = {
     bucket = "emenu-terraform-state-bucket"
-    key    = "emenu_backend/${var.environment}/terraform.tfstate"  # eMenu-backend 项目的 state 路径
+    key    = "emenu_backend/${var.environment}/terraform.tfstate" # eMenu-backend 项目的 state 路径
     region = var.region
   }
 }

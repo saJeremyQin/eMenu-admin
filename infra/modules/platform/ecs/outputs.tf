@@ -1,7 +1,7 @@
 
 output "alb_dns_name" {
   description = "The dns name of alb, accessible if success"
-  value = aws_alb.this.dns_name
+  value       = aws_alb.this.dns_name
 }
 
 output "service_name" {

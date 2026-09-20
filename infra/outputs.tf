@@ -21,7 +21,7 @@ output "fargate_security_group_id" {
 }
 
 output "public_subnet_a_id" {
-  value = module.core_infra.public_subnet_a_id 
+  value = module.core_infra.public_subnet_a_id
 }
 
 output "public_subnet_b_id" {
@@ -53,7 +53,7 @@ output "ecs_service_name" {
 
 output "alb_dns_name" {
   description = "The dns name of alb, accessible if success"
-  value = module.platform_infra.alb_dns_name
+  value       = module.platform_infra.alb_dns_name
 }
 
 # ECR Registry URL parameter for container deployment
@@ -62,5 +62,5 @@ resource "aws_ssm_parameter" "ssm_ecr_registry_url" {
   name        = "/${var.repo_name}/${var.environment}/ecr_registry_url"
   value       = module.core_infra.ecr_repository_url
   type        = "String"
-  overwrite   = true  
+  overwrite   = true
 }

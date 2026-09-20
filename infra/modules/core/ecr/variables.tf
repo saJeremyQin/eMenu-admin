@@ -5,16 +5,16 @@ variable "aws_region" {
 
 variable "app_name" {
   description = "the name of app, from upper level"
-  type = string
+  type        = string
 }
 
 variable "repo_name" {
   description = "the name of repo, from upper level"
-  type = string
+  type        = string
 }
 
 variable "environment" {
   description = "the name of deployment environemnt, such as dev, prod..."
-  default = "dev"
-  type = string
+  default     = "dev"
+  type        = string
 }

@@ -20,27 +20,27 @@ variable "vpc_id" {
 }
 
 variable "service_name" {
-  
+
 }
 
 variable "container_image" {
-  
+
 }
 
 variable "container_port" {
-  
+
 }
 
 variable "environment" {
-  
+
 }
 
 variable "app_name" {
-  
+
 }
 
 variable "repo_name" {
-  
+
 }
 
 variable "presigned_url_generator" {

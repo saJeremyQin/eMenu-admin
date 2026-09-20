@@ -4,7 +4,7 @@ resource "aws_ecs_cluster" "this" {
   name = "${var.repo_name}-${var.environment}-cluster"
 
   tags = {
-    Name = "${var.repo_name}-${var.environment}-cluster"
+    Name    = "${var.repo_name}-${var.environment}-cluster"
     Project = "${var.repo_name}-${var.environment}-project"
     Service = "${var.repo_name}-${var.environment}-service"
   }

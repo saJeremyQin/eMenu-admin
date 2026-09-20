@@ -13,7 +13,7 @@
 # }
 
 variable "container_image" {
-  type = string  
+  type = string
 }
 
 variable "container_port" {
@@ -41,14 +41,14 @@ variable "public_subnet_b_id" {
 }
 
 variable "environment" {
-  
+
 }
 variable "app_name" {
-  
+
 }
 
 variable "repo_name" {
-  
+
 }
 
 variable "presigned_url_generator_url" {
@@ -68,10 +68,10 @@ variable "dish_images_bucket" {
 
 
 module "ecs" {
-  source          = "./ecs"
-  app_name        = var.app_name
-  repo_name       = var.repo_name
-  service_name    = var.repo_name
+  source       = "./ecs"
+  app_name     = var.app_name
+  repo_name    = var.repo_name
+  service_name = var.repo_name
 
   container_image = var.container_image
   container_port  = var.container_port
@@ -80,12 +80,12 @@ module "ecs" {
   alb_sg_id     = var.alb_sg_id
   fargate_sg_id = var.fargate_sg_id
 
-  public_subnet_a_id =  var.public_subnet_a_id 
-  public_subnet_b_id =  var.public_subnet_b_id
+  public_subnet_a_id = var.public_subnet_a_id
+  public_subnet_b_id = var.public_subnet_b_id
 
   # Backend configuration from remote state
-  presigned_url_generator = var.presigned_url_generator_url
-  dish_images_bucket     = var.dish_images_bucket
+  presigned_url_generator  = var.presigned_url_generator_url
+  dish_images_bucket       = var.dish_images_bucket
   restaurant_assets_bucket = var.restaurant_assets_bucket
 
   environment = var.environment
@@ -97,10 +97,10 @@ output "ecs_cluster_name" {
 
 output "alb_dns_name" {
   description = "The dns name of alb, accessible if success"
-  value = module.ecs.alb_dns_name
+  value       = module.ecs.alb_dns_name
 }
 
 output "ecs_service_name" {
   description = "The service name of ecs"
-  value = module.ecs.service_name
+  value       = module.ecs.service_name
 }
