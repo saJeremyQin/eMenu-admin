@@ -16,3 +16,4 @@ public_subnets = [
     availability_zone = "ap-southeast-2b"
   }
 ]
+

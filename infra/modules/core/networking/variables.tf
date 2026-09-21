@@ -33,3 +33,4 @@ variable "public_subnets" {
     error_message = "public_subnets must contain exactly two entries named public-a and public-b."
   }
 }
+

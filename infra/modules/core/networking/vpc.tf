@@ -30,14 +30,12 @@ resource "aws_subnet" "public" {
   cidr_block        = each.value.cidr_block
   availability_zone = each.value.availability_zone
 
-  // Instances launched into the subnet should be assigned a public IP address. Why?
   map_public_ip_on_launch = true
   tags = {
     Name = "${local.resource_prefix}-${each.key}"
   }
 }
 
-// Create route table
 resource "aws_route_table" "public" {
   vpc_id = aws_vpc.this.id
   tags = {
@@ -45,16 +43,14 @@ resource "aws_route_table" "public" {
   }
 }
 
-// attach Internet route
 resource "aws_route" "internet_access" {
-  route_table_id         = aws_route_table.public.id    //this route is added to the above route table
-  destination_cidr_block = "0.0.0.0/0"                  //all the outbound traffic
-  gateway_id             = aws_internet_gateway.this.id //allow all the outbound traffic to the IGW, make them access internet
+  route_table_id         = aws_route_table.public.id
+  destination_cidr_block = "0.0.0.0/0"
+  gateway_id             = aws_internet_gateway.this.id
 }
 
-// associate route table to subnet
 resource "aws_route_table_association" "public" {
   for_each       = aws_subnet.public
-  subnet_id      = each.value.id //only after association, the subnet can access to Internet
+  subnet_id      = each.value.id
   route_table_id = aws_route_table.public.id
 }
