@@ -77,9 +77,6 @@ jobs:
           # Build docker image
           docker build -t "$FULL_IMAGE_URI" .
           
-          # Only tag latest, used by ECS task definition
-          docker tag "$FULL_IMAGE_URI" "$ECR_REGISTRY/$ECR_REPOSITORY:latest"
-          
           # Save variables for later steps
           echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_ENV
           echo "FULL_IMAGE_URI=$FULL_IMAGE_URI" >> $GITHUB_ENV
@@ -88,8 +85,7 @@ jobs:
         run: |
           echo "📤 Pushing images to ECR..."
           docker push "$FULL_IMAGE_URI"
-          docker push "$ECR_REGISTRY/$ECR_REPOSITORY:latest"
-          echo "✅ Successfully pushed all tags"
+          echo "✅ Successfully pushed SHA tagged image: $FULL_IMAGE_URI"
           
           echo "⏱️  Waiting for ECR to propagate images..."
           sleep 10
@@ -97,12 +93,48 @@ jobs:
       - name: Deploy to ECS
         run: |
           echo "🚀 Deploying to ECS $ENVIRONMENT environment..."
+
+          echo "🧾 Reading current task definition from service..."
+          CURRENT_TASK_DEF_ARN=$(aws ecs describe-services \
+            --cluster $ECS_CLUSTER \
+            --services $ECS_SERVICE \
+            --region $AWS_REGION \
+            --query 'services[0].taskDefinition' \
+            --output text)
+
+          echo "🛠️ Registering new task definition revision with image: $FULL_IMAGE_URI"
+          aws ecs describe-task-definition \
+            --task-definition "$CURRENT_TASK_DEF_ARN" \
+            --region $AWS_REGION \
+            --query 'taskDefinition' > task-def.json
+
+          jq --arg IMAGE "$FULL_IMAGE_URI" '
+            .containerDefinitions[0].image = $IMAGE |
+            del(
+            .taskDefinitionArn,
+            .revision,
+            .status,
+            .requiresAttributes,
+            .compatibilities,
+            .registeredAt,
+            .registeredBy
+            )
+          ' task-def.json > task-def-new.json
+
+          NEW_TASK_DEF_ARN=$(aws ecs register-task-definition \
+            --cli-input-json file://task-def-new.json \
+            --region $AWS_REGION \
+            --query 'taskDefinition.taskDefinitionArn' \
+            --output text)
+
+          echo "✅ New task definition: $NEW_TASK_DEF_ARN"
+
           aws ecs update-service \
             --cluster $ECS_CLUSTER \
             --service $ECS_SERVICE \
-            --force-new-deployment \
+            --task-definition "$NEW_TASK_DEF_ARN" \
             --region $AWS_REGION
-          
+
           echo "⏳ Waiting for deployment to stabilize..."
           aws ecs wait services-stable \
             --cluster $ECS_CLUSTER \
@@ -110,7 +142,7 @@ jobs:
             --region $AWS_REGION \
             --cli-read-timeout 900 \
             --cli-connect-timeout 60
-          
+
           echo "✅ Deployment completed successfully!"
 
       - name: Get deployment status
