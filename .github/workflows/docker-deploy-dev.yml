@@ -23,7 +23,7 @@ env:
   AWS_REGION: ap-southeast-2
   ECS_CLUSTER: emenu-admin-dev-cluster
   ECS_SERVICE: emenu-admin-dev-service
-        
+  # Need passECSExecutionRole for ECS deployment, set it in GITHUB_OIDC_ROLE
 jobs: 
   build-and-deploy:
     runs-on: ubuntu-latest
