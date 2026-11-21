@@ -50,7 +50,8 @@ resource "aws_route" "internet_access" {
 }
 
 resource "aws_route_table_association" "public" {
-  for_each       = aws_subnet.public
-  subnet_id      = each.value.id
+  # Keys come from config (known at plan/import time); the subnet ID is looked up per key.
+  for_each       = local.public_subnets_by_name
+  subnet_id      = aws_subnet.public[each.key].id
   route_table_id = aws_route_table.public.id
 }
