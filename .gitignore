@@ -29,6 +29,13 @@ dist-ssr
 *.tfstate
 *.tfstate.backup
 .terraform.lock.hcl
+# Plans and local variable files can contain secret values.
+# dev.tfvars / prod.tfvars are committed on purpose: keep secrets out of them.
+tfplan
+*.tfplan
+plan.txt
+terraform.tfvars
+*.auto.tfvars
 
 # Playwright / test artifacts
 test-results/
