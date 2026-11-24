@@ -1,5 +1,14 @@
 terraform {
-  required_version = ">= 1.5.0"
+  required_version = ">= 1.10" # S3 native locking (use_lockfile)
+
+  # Same constraint as eMenu-backend (infra/main, infra/bootstrap); the committed
+  # .terraform.lock.hcl pins the exact version, 6.73.0 in both repos.
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "~> 6.73"
+    }
+  }
 }
 
 provider "aws" {
@@ -13,6 +22,7 @@ module "core_infra" {
   environment    = var.environment
   app_name       = var.app_name
   repo_name      = var.repo_name
+  state_bucket   = var.state_bucket
   vpc_cidr       = var.vpc_cidr
   public_subnets = var.public_subnets
 }

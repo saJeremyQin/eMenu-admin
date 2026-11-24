@@ -3,6 +3,7 @@ region             = "ap-southeast-2"
 app_name           = "emenu"
 repo_name          = "emenu-admin"
 ecs_container_port = 80
+state_bucket       = "emenu-tfstate-prod-471112659065"
 vpc_cidr           = "10.0.0.0/16"
 public_subnets = [
   {

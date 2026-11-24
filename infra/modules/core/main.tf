@@ -19,6 +19,11 @@ variable "repo_name" {
   type    = string
 }
 
+variable "state_bucket" {
+  description = "This account's Terraform state bucket; the backend stack's state is read from it"
+  type        = string
+}
+
 variable "vpc_cidr" {
   description = "CIDR block for the shared VPC."
   type        = string
@@ -64,7 +69,7 @@ module "ecr" {
 data "terraform_remote_state" "backend" {
   backend = "s3"
   config = {
-    bucket = "emenu-terraform-state-bucket"
+    bucket = var.state_bucket
     key    = "emenu_backend/${var.environment}/terraform.tfstate" # eMenu-backend 项目的 state 路径
     region = var.region
   }
