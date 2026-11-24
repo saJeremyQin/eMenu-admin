@@ -43,3 +43,7 @@ variable "public_subnets" {
   }
 }
 
+variable "state_bucket" {
+  description = "This account's Terraform state bucket (emenu-tfstate-<env>-<account-id>). Must match backend-<env>.hcl."
+  type        = string
+}
