@@ -2,6 +2,7 @@ import React from 'react';
 import styles from './SubscriptionPlan.module.scss';
 import { generateClient } from 'aws-amplify/api';
 import UpgradeModal from '../../components/UpgradeModal/UpgradeModal';
+import { PRO_PRICE_AUD, formatTableLimit } from '../../lib/plans';
 
 const client = generateClient();
 
@@ -30,6 +31,7 @@ const SubscriptionPlan = () => {
   const [restaurant, setRestaurant] = React.useState(null);
   const [showModal, setShowModal] = React.useState(false);
   const [selectedPlan, setSelectedPlan] = React.useState(null);
+  const [error, setError] = React.useState(null);
 
 
   React.useEffect(() => {
@@ -45,7 +47,6 @@ const SubscriptionPlan = () => {
               logoUrl
               subscriptionPlan 
               subscriptionExpiry
-              waiterLimit
               tableLimit
             }
           }
@@ -63,8 +64,10 @@ const SubscriptionPlan = () => {
     run();
   }, []);
 
+  // Show only what the server returns: no optimistic update. (PRO is granted by the
+  // backend after a verified payment; a failed call must not show PRO.)
   const handleUpgradeSuccess = async ({ plan, expiryISO, paymentTransactionId }) => {
-    // 优先调用真实后端；失败时做前端乐观更新
+    setError(null);
     try {
       const mutation = /* GraphQL */ `
         mutation UpdateRestaurantSubscriptionPlan($input: SubscriptionUpgradeInput!) {
@@ -72,7 +75,6 @@ const SubscriptionPlan = () => {
             id
             subscriptionPlan
             subscriptionExpiry
-            waiterLimit
             tableLimit
           }
         }
@@ -93,26 +95,17 @@ const SubscriptionPlan = () => {
           ...prev,
           subscriptionPlan: r.subscriptionPlan,
           subscriptionExpiry: r.subscriptionExpiry,
-          waiterLimit: r.waiterLimit,
           tableLimit: r.tableLimit,
         }));
         return;
       }
-      setRestaurant(prev => ({
-        ...prev,
-        subscriptionPlan: plan,
-        subscriptionExpiry: plan === 'FREE' ? null : expiryISO,
-        waiterLimit: plan === 'FREE' ? 1 : 20,
-        tableLimit: plan === 'FREE' ? 20 : 100,
-      }));
-    } catch {
-      setRestaurant(prev => ({
-        ...prev,
-        subscriptionPlan: plan,
-        subscriptionExpiry: plan === 'FREE' ? null : expiryISO,
-        waiterLimit: plan === 'FREE' ? 1 : 20,
-        tableLimit: plan === 'FREE' ? 20 : 100,
-      }));
+      setError('The subscription could not be updated. Please try again.');
+    } catch (e) {
+      console.error('Update subscription failed', e);
+      const message = e?.errors?.[0]?.message || '';
+      setError(message.includes('PERMISSION_DENIED')
+        ? 'Online payment for PRO is coming soon. Your plan has not been changed.'
+        : 'The subscription could not be updated. Please try again.');
     }
   };
 
@@ -134,9 +127,10 @@ const SubscriptionPlan = () => {
           {restaurant.subscriptionExpiry && (
             <div className={styles.metaRow}><span>Days left:</span> <strong>{left} day{left === 1 ? '' : 's'}</strong></div>
           )}
-          <div className={styles.metaRow}><span>Waiters:</span> <strong>{restaurant.waiterLimit ?? '-'}</strong></div>
-          <div className={styles.metaRow}><span>Tables:</span> <strong>{restaurant.tableLimit ?? '-'}</strong></div>
+          <div className={styles.metaRow}><span>Tables:</span> <strong>{formatTableLimit(restaurant)}</strong></div>
+          <div className={styles.metaRow}><span>Dishes, categories, waiters:</span> <strong>Unlimited</strong></div>
         </div>
+        {error && <p role="alert" className={styles.error}>{error}</p>}
       </div>
 
       <div className={styles.compareSection}>
@@ -147,23 +141,23 @@ const SubscriptionPlan = () => {
             <div className={styles.price}>Free</div>
             <button className={styles.disabledBtn} disabled>{plan === 'FREE' ? 'Current Plan' : 'Included'}</button>
             <ul>
-              <li>Waiters: 1</li>
-              <li>Tables: up to 20</li>
-              <li>Validity: perpetual</li>
-              <li>Order ownership: own ongoing orders only</li>
+              <li>Tables: 1-8</li>
+              <li>Unlimited dishes, categories and waiters</li>
+              <li>All waiters share tables</li>
+              <li>Free forever</li>
             </ul>
           </div>
           <div className={styles.planCardPro}>
             <div className={styles.cardHeader}>PRO</div>
-            <div className={styles.price}>$9.99<span className={styles.perMonth}>/month</span></div>
+            <div className={styles.price}>${PRO_PRICE_AUD}<span className={styles.perMonth}>/month</span></div>
             <button className={styles.primaryBtn} onClick={() => { setSelectedPlan('PRO'); setShowModal(true); }}>
               {plan === 'PRO' ? 'Extend Plan' : 'Upgrade'}
             </button>
             <ul>
-              <li>Waiters: up to 20</li>
-              <li>Tables: up to 100</li>
-              <li>Order ownership: shared ongoing orders across waiters</li>
-              <li>Supports waiter pickup of pending orders</li>
+              <li>Unlimited tables</li>
+              <li>Unlimited dishes, categories and waiters</li>
+              <li>All waiters share tables</li>
+              <li>Customer QR ordering (coming soon)</li>
             </ul>
           </div>
         </div>
