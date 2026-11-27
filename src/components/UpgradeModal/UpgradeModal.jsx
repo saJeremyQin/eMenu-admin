@@ -2,9 +2,10 @@
 import React from 'react';
 import styles from './UpgradeModal.module.scss';
 import { fakeCharge } from '../../lib/payments/mockPayment';
+import { PRO_PRICE_AUD } from '../../lib/plans';
 
 const PRICING = {
-  PRO: 9.99,
+  PRO: PRO_PRICE_AUD,
 };
 
 
